@@ -1,0 +1,8 @@
+#!/bin/sh
+
+COMMIT=${1:-HEAD}
+
+DATE=$(date +"%04Y%02m%02d")
+GITVER=$(git rev-list --no-walk --abbrev-commit $COMMIT)
+
+echo "${DATE}git${GITVER}"
