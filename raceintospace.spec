@@ -4,7 +4,7 @@
 
 Name:		Race into space
 Version:	0
-Release:	1%{?snapinfo:.%{snapinfo}}%{?dist}
+Release:	0%{?snapinfo:.%{snapinfo}}%{?dist}
 Summary:	Race into Space is the free software version of Interplay's Buzz Aldrin's Race into Space
 
 License:	GPLv2+
@@ -14,6 +14,7 @@ Source0:
 BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel
 BuildRequires:	libogg-devel libvorbis-devel libtheora-devel jsoncpp-devel
+BuildRequires:	physfs-devel
 Requires:	SDL
 
 %description
@@ -23,19 +24,24 @@ the Liftoff! board game by Fritz Bronner. This was developed by Strategic Vision
 and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
 
 %prep
-%cmake
-
+mkdir build
+pushd build
+%cmake -DBUILD_PHYSFS=OFF ..
+popd
 
 %build
+pushd build
 make %{?_smp_mflags}
-
+popd
 
 %install
+pushd build
 %make_install
-
+popd
 
 %files
 %doc
+%{_bindir}/raceintospace
 
 
 
