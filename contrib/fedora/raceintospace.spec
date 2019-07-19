@@ -1,6 +1,6 @@
 %global gittag v1_1_0_shared-libs
 
-%if 0%{?gittag}
+%if 0%{?gittag:1}
 # For use of github tag releases, not yet on main project
 %global pkgversion %{gittag}
 %global github_owner pemensik
