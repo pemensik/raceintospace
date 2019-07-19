@@ -1,7 +1,18 @@
+%global gittag v1_1_0_shared-libs
+
+%if 0%{?gittag}
+# For use of github tag releases, not yet on main project
+%global pkgversion %{gittag}
+%global github_owner pemensik
+%else
+# Use direct commits
 %global commit bf6c86a
 %global date 20190719
+%global github_owner raceintospace
 %global snapinfo %{date}git%{commit}
 %global pkgversion %{version}-git%{commit}
+%endif
+
 
 Name:		raceintospace
 Version:	1.1.0
@@ -9,8 +20,10 @@ Release:	1%{?snapinfo:.%{snapinfo}}%{?dist}
 Summary:	Race into Space game
 
 License:	GPLv2+
-URL:		https://github.com/raceintospace/raceintospace
-Source0:	raceintospace-%{pkgversion}.tar.bz2
+#URL:		https://github.com/raceintospace/raceintospace
+URL:		http://www.raceintospace.org/
+#Source0:	raceintospace-%{pkgversion}.tar.bz2
+Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.gz
 
 BuildRequires:	cmake gcc-c++
 BuildRequires:	SDL-devel protobuf-devel boost-devel
