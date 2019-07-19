@@ -2,7 +2,8 @@
 
 %if 0%{?gittag:1}
 # For use of github tag releases, not yet on main project
-%global pkgversion %{gittag}
+#%global pkgversion %%{gittag}
+%global pkgversion 1_1_0_shared-libs
 %global github_owner pemensik
 %else
 # Use direct commits
@@ -22,7 +23,7 @@ Summary:	Race into Space game
 License:	GPLv2+
 #URL:		https://github.com/raceintospace/raceintospace
 URL:		http://www.raceintospace.org/
-#Source0:	raceintospace-%{pkgversion}.tar.bz2
+#Source0:	raceintospace-%%{pkgversion}.tar.bz2
 Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.gz
 
 BuildRequires:	cmake gcc-c++
