@@ -14,6 +14,8 @@
 %global pkgversion %{version}-git%{commit}
 %endif
 
+# Since gcc build is broken, use clang by default
+%bcond_without clang
 
 Name:		raceintospace
 Version:	1.1.0
@@ -26,10 +28,15 @@ URL:		http://www.raceintospace.org/
 #Source0:	raceintospace-%%{pkgversion}.tar.bz2
 Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.gz
 
-BuildRequires:	cmake gcc-c++
+BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel boost-devel
 BuildRequires:	libogg-devel libvorbis-devel libtheora-devel jsoncpp-devel
 BuildRequires:	physfs-devel libpng-devel
+%if %{with clang}
+BuildRequires:	clang
+%else
+BuildRequires:	gcc-c++
+%endif
 Requires:	SDL
 Requires:	%{name}-data = %{version}-%{release}
 
@@ -52,6 +59,9 @@ and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
 Contains shared game data.
 
 %prep
+%if %{with clang}
+export CC=clang CXX=clang++
+%endif
 %autosetup -p1 -n %{name}-%{pkgversion}
 mkdir build
 pushd build
