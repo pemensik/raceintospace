@@ -29,6 +29,7 @@ License:	GPLv2+
 URL:		http://www.raceintospace.org/
 #Source0:	raceintospace-%%{pkgversion}.tar.bz2
 Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.%{archive_suffix}
+Patch1:		0001-Compile-under-clang.patch
 
 BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel boost-devel

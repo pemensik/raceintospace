@@ -1,0 +1,26 @@
+From f36f15b53409bd4d354dbb2de55ef5378fed010d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Petr=20Men=C5=A1=C3=ADk?= <pihhan@gmail.com>
+Date: Sat, 7 Sep 2019 20:28:37 +0200
+Subject: [PATCH] Compile under clang
+
+Fix error emitted by clang that non-constant expression is implicitly cast from int to char.
+---
+ src/game/newmis.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game/newmis.cpp b/src/game/newmis.cpp
+index ef373eb..3c11705 100644
+--- a/src/game/newmis.cpp
++++ b/src/game/newmis.cpp
+@@ -159,7 +159,7 @@ void MisAnn(char plr, char pad)
+     int i, j, bud;
+     struct mStr Mis2;
+     char k, hold, Digit[4], HelpFlag = 0;
+-    char pad_str[2] = {'A' + pad, '\0'};
++    char pad_str[2] = {static_cast<char>('A' + pad), '\0'};
+ 
+     display::graphics.screen()->clear();
+ 
+-- 
+2.20.1
+
