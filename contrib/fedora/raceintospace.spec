@@ -64,6 +64,9 @@ Contains shared game data.
 %prep
 %if %{with clang}
 export CC=clang CXX=clang++
+# Clang does not support this option
+export CFLAGS=`echo '%optflags' | sed -e 's/ -fstack-clash-protection//'`
+export CXXFLAGS="$CFLAGS"
 %endif
 %autosetup -p1 -n %{name}-%{pkgversion}
 mkdir build
