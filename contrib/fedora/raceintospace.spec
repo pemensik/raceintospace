@@ -5,13 +5,15 @@
 #%global pkgversion %%{gittag}
 %global pkgversion 1_1_0_shared-libs
 %global github_owner pemensik
+%global archive_suffix gz
 %else
 # Use direct commits
-%global commit bf6c86a
-%global date 20190719
+%global commit 0a422b5
+%global date 20190907
 %global github_owner raceintospace
 %global snapinfo %{date}git%{commit}
 %global pkgversion %{version}-git%{commit}
+%global archive_suffix bz2
 %endif
 
 # Since gcc build is broken, use clang by default
@@ -26,7 +28,7 @@ License:	GPLv2+
 #URL:		https://github.com/raceintospace/raceintospace
 URL:		http://www.raceintospace.org/
 #Source0:	raceintospace-%%{pkgversion}.tar.bz2
-Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.gz
+Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.%{archive_suffix}
 
 BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel boost-devel
