@@ -15,9 +15,14 @@ EOF
 update()
 {
 sed -e "s/^%global commit [[:xdigit:]]\+/%global commit ${GITVER}/" \
-	-e "s/^%global date [[:digit:]]\+/%global date ${DATE}/" -i *.spec
+	-e "s/^%global date [[:digit:]]\+/%global date ${DATE}/" -i $@
 }
 
-print
 
-[ "$1" = '-u' ] && update
+if [ "$1" = '-u' ]
+then
+	shift
+	update ${1:-*.spec}
+else
+	print
+fi
