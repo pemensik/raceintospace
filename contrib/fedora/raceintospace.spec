@@ -1,19 +1,19 @@
-%global gittag v1_1_0_shared-libs
+#%%global gittag v1_1_0_shared-libs
 
 %if 0%{?gittag:1}
 # For use of github tag releases, not yet on main project
 #%global pkgversion %%{gittag}
 %global pkgversion 1_1_0_shared-libs
 %global github_owner pemensik
-%global archive_suffix gz
+%global archive_suffix tar.gz
 %else
 # Use direct commits
 %global commit 0a422b5
 %global date 20190907
 %global github_owner raceintospace
 %global snapinfo %{date}git%{commit}
-%global pkgversion %{version}-git%{commit}
-%global archive_suffix bz2
+%{?!pkgversion:%global pkgversion %{version}-git%{commit}}
+%global archive_suffix tar.gz
 %endif
 
 # Since gcc build is broken, use clang by default
@@ -28,8 +28,8 @@ License:	GPLv2+
 #URL:		https://github.com/raceintospace/raceintospace
 URL:		http://www.raceintospace.org/
 #Source0:	raceintospace-%%{pkgversion}.tar.bz2
-Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.tar.%{archive_suffix}
-Patch1:		0001-Compile-under-clang.patch
+Source0:	https://github.com/%{github_owner}/%{name}/archive/%{gittag}/%{name}-%{pkgversion}.%{archive_suffix}
+#Patch1:		0001-Compile-under-clang.patch
 
 BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel boost-devel

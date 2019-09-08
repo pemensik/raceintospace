@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# Prepare source archive and SRPM
+# Usage:
+#
+# mkarchive
+# rpmbuild --define '_sourcedir .' --define 'pkgversion git' -bs *.spec
+
+ARCHIVE_NAME=raceintospace-git
+ARCHIVE_SUFFIX=tar.gz
+COMMIT=HEAD
+CONTRIB="`dirname -- "$0"`"
+
+TARGET_DIR=`pwd`
+TARGET_FILE="${TARGET_DIR}/${ARCHIVE_NAME}.${ARCHIVE_SUFFIX}"
+
+( cd "$CONTRIB/../.." && \
+	git archive --prefix="${ARCHIVE_NAME}/" -o "$TARGET_FILE" $COMMIT \
+)
