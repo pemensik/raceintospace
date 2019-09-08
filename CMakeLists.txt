@@ -1,11 +1,11 @@
-cmake_minimum_required (VERSION 2.8)
-project(raceintospace)
+cmake_minimum_required (VERSION 3.0)
+project(raceintospace
+	VERSION 1.1.0
+	LANGUAGES C CXX)
 
 enable_testing()
 
-set (raceintospace_VERSION_MAJOR 1)
-set (raceintospace_VERSION_MINOR 1)
-set (raceintospace_VERSION_RELEASE 0)
+set (raceintospace_VERSION_RELEASE ${raceintospace_VERSION_PATCH})
 
 # Platform detection
 if (WIN32 AND NOT WINDOWS)
@@ -21,7 +21,16 @@ add_subdirectory(src)
 install(PROGRAMS icons/raceintospace.desktop DESTINATION /usr/share/applications)
 install(FILES icons/raceintospace.xpm DESTINATION /usr/share/pixmaps)
 
-set(PROJECT_VERSION "${raceintospace_VERSION_MAJOR}.${raceintospace_VERSION_MINOR}.${raceintospace_VERSION_RELEASE}")
+set(CPACK_GENERATOR TGZ)
+set(CPACK_SOURCE_GENERATOR TGZ)
+include(CPack)
+
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.git/")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/CMakeFiles/")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/build/")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.tar\\.gz$/")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.tar\\.bz2$/")
+
 execute_process(COMMAND git rev-list -1 --abbrev-commit HEAD
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 OUTPUT_VARIABLE COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE)
