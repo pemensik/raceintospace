@@ -1,11 +1,15 @@
-cmake_minimum_required (VERSION 3.0)
-project(raceintospace
-	VERSION 1.1.0
-	LANGUAGES C CXX)
+cmake_minimum_required (VERSION 2.8)
+project(raceintospace)
 
 enable_testing()
 
-set (raceintospace_VERSION_RELEASE ${raceintospace_VERSION_PATCH})
+set (raceintospace_VERSION_MAJOR 1)
+set (raceintospace_VERSION_MINOR 1)
+set (raceintospace_VERSION_RELEASE 0)
+if (NOT DEFINED CMAKE_PROJECT_VERSION)
+# TODO: use project VERSION & cmake 3.0
+  set (CMAKE_PROJECT_VERSION "${raceintospace_VERSION_MAJOR}.${raceintospace_VERSION_MINOR}.${raceintospace_VERSION_RELEASE}")
+endif (NOT DEFINED CMAKE_PROJECT_VERSION)
 
 # Platform detection
 if (WIN32 AND NOT WINDOWS)
@@ -25,16 +29,6 @@ set(CPACK_GENERATOR TGZ)
 set(CPACK_SOURCE_GENERATOR TGZ)
 include(CPack)
 
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.git/")
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/CMakeFiles/")
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/build/")
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.tar\\.gz$/")
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/\\.tar\\.bz2$/")
-
-execute_process(COMMAND git rev-list -1 --abbrev-commit HEAD
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                OUTPUT_VARIABLE COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(ARCHIVE_NAME "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}-git${COMMIT}")
 add_custom_target(dist
-    COMMAND git archive --prefix="${ARCHIVE_NAME}/" HEAD | bzip2 > "${CMAKE_BINARY_DIR}/${ARCHIVE_NAME}.tar.bz2"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+	COMMAND ${CMAKE_COMMAND} -D ARCHIVE_PREFIX="${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}" -D SOURCE_DIR="${CMAKE_SOURCE_DIR}" -D OUTPUT_DIR="${CMAKE_BINARY_DIR}" -P ${CMAKE_CURRENT_SOURCE_DIR}/make_archive.cmake
+)
