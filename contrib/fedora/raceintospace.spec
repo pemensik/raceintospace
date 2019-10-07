@@ -44,9 +44,12 @@ Requires:	SDL
 Requires:	%{name}-data = %{version}-%{release}
 
 %description
-Race into Space is the free software version of Interplay's Buzz Aldrin's Race into Space.
-This is the reworked version following the source release for the computer version of
-the Liftoff! board game by Fritz Bronner. This was developed by Strategic Visions
+Relive the 1960s Space Race - be the first country to land a man on the Moon!
+
+Race into Space is the free software version of Interplay's
+Buzz Aldrin's Race into Space. This is the reworked version following
+the source release for the computer version of the Liftoff! board game
+by Fritz Bronner. This was developed by Strategic Visions
 and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
 
 %package data
