@@ -189,7 +189,7 @@ void PadDraw(char plr, char pad)
     }
 
     display::graphics.setForegroundColor(6);
-    MissionName(Data->P[plr].Mission[pad].MissionCode, 11, 81, 20);
+    MissionName(Data->P[plr].Mission[pad].MissionCode, 10, 81, 20);
     display::graphics.setForegroundColor(1);
 
     // joint mission part
@@ -583,7 +583,7 @@ void PadPict(char poff)
 void ShowPad(char plr, char pad)
 {
     char temp;
-    music_start((plr == 1) ? M_USMIL : M_USSRMIL);
+    music_start((plr == 0) ? M_USMIL : M_USSRMIL);
     PadDraw(plr, pad);
     temp = CheckCrewOK(plr, pad);
 
