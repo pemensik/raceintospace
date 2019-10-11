@@ -35,6 +35,7 @@ BuildRequires:	cmake
 BuildRequires:	SDL-devel protobuf-devel boost-devel
 BuildRequires:	libogg-devel libvorbis-devel libtheora-devel jsoncpp-devel
 BuildRequires:	physfs-devel libpng-devel
+BuildRequires:	desktop-file-utils
 %if %{with clang}
 BuildRequires:	clang
 %else
@@ -57,12 +58,13 @@ BuildArch:	noarch
 Summary:	Race into Space game data
 
 %description data
-Race into Space is the free software version of Interplay's Buzz Aldrin's Race into Space.
-This is the reworked version following the source release for the computer version of
-the Liftoff! board game by Fritz Bronner. This was developed by Strategic Visions
+Race into Space is the free software version of Interplay's
+Buzz Aldrin's Race into Space. This is the reworked version following
+the source release for the computer version of the Liftoff! board game
+by Fritz Bronner. This was developed by Strategic Visions
 and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
 
-Contains shared game data.
+Contains platform independent game data.
 
 %prep
 %if %{with clang}
@@ -86,16 +88,17 @@ popd
 pushd build
 %make_install
 popd
+desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 
 %files
 %doc AUTHORS README.md
 %license COPYING
 %{_bindir}/raceintospace
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/pixmaps/%{name}.*
 
 %files data
 %{_datadir}/%{name}
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/pixmaps/%{name}.*
 
 %changelog
 * Fri Jul 19 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-1.20190719gitbf6c86a
