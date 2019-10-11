@@ -67,6 +67,19 @@ and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
 
 Contains platform independent game data.
 
+%package doc
+BuildArch:	noarch
+Summary:	Race into Space game manual
+
+%description doc
+Race into Space is the free software version of Interplay's
+Buzz Aldrin's Race into Space. This is the reworked version following
+the source release for the computer version of the Liftoff! board game
+by Fritz Bronner. This was developed by Strategic Visions
+and published by Interplay as a disk-based game in 1992 and a CD-ROM in 1994.
+
+Contains game manual
+
 %prep
 %if %{with clang}
 export CC=clang CXX=clang++
@@ -83,6 +96,9 @@ popd
 %build
 pushd build
 make %{?_smp_mflags}
+popd
+pushd doc/manual
+pandoc -o manual.html manual.md
 popd
 
 %check
@@ -104,6 +120,9 @@ install -m 0644 doc/raceintospace.appdata.xml %{_metainfodir}
 
 %files data
 %{_datadir}/%{name}
+
+%files doc
+%doc doc/manual
 
 %changelog
 * Fri Jul 19 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-1.20190719gitbf6c86a
