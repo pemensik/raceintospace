@@ -36,6 +36,7 @@ BuildRequires:	SDL-devel protobuf-devel boost-devel
 BuildRequires:	libogg-devel libvorbis-devel libtheora-devel jsoncpp-devel
 BuildRequires:	physfs-devel libpng-devel
 BuildRequires:	desktop-file-utils
+BuildRequires:	libappstream-glib
 %if %{with clang}
 BuildRequires:	clang
 %else
@@ -84,11 +85,15 @@ pushd build
 make %{?_smp_mflags}
 popd
 
+%check
+desktop-file-validate icons/%{name}.desktop
+appstream-util validate-relax doc/%{name}.appdata.xml
+
 %install
 pushd build
 %make_install
 popd
-desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
+install -m 0644 doc/raceintospace.appdata.xml %{_metainfodir}
 
 %files
 %doc AUTHORS README.md
