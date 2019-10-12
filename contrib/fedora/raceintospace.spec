@@ -48,7 +48,6 @@ BuildRequires:	clang
 %else
 BuildRequires:	gcc-c++
 %endif
-Requires:	SDL
 Requires:	%{name}-data = %{version}-%{release}
 
 %description
