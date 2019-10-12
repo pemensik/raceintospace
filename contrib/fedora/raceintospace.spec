@@ -1,4 +1,4 @@
-#%%global gittag v1_1_0_shared-libs
+%global gittag v1_1_0_fedora-c2
 
 %global archive_suffix tar.gz
 %global commit f3b482f
@@ -6,7 +6,7 @@
 
 %if 0%{?gittag:1}
 # For use of github tag releases, not yet on main project
-%global pkgversion %%{gittag}
+%global pkgversion %(echo %{gittag} | sed -e s/^v//)
 %global github_owner pemensik
 %else
 # Use direct commits
@@ -26,7 +26,7 @@
 
 Name:		raceintospace
 Version:	1.1.0
-Release:	1%{?snapinfo:.%{snapinfo}}%{?dist}
+Release:	2%{?snapinfo:.%{snapinfo}}%{?dist}
 Summary:	Race into Space game
 
 License:	GPLv2+
@@ -130,6 +130,9 @@ install -m 0644 doc/raceintospace.appdata.xml %{_metainfodir}
 %doc doc/manual
 
 %changelog
+* Sat Oct 12 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-2
+- Fix review comment #2 issues
+
 * Fri Jul 19 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-1.20190719gitbf6c86a
 - Initial version
 
