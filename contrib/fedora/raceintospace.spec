@@ -1,5 +1,6 @@
 %bcond_with copr
 %bcond_with snapshot
+%bcond_without net
 
 %global archive_suffix tar.gz
 %global commit 623777f
@@ -107,15 +108,19 @@ pushd doc/manual
 pandoc -o manual.html manual.md
 popd
 
-%check
-desktop-file-validate icons/%{name}.desktop
-appstream-util validate-relax doc/%{name}.appdata.xml
-
 %install
 pushd build
 %make_install
 popd
 install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}
+
+%check
+desktop-file-validate icons/%{name}.desktop
+%if %{with net}
+# Failures in mockbuild when validating screenshot urls
+# Skip validation until fixed
+appstream-util validate-relax doc/%{name}.appdata.xml
+%endif
 
 %files
 %doc AUTHORS README.md
@@ -134,6 +139,7 @@ install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}
 %changelog
 * Sat Oct 12 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-2
 - Fix review comment #2 issues
+- Skip appdata check by default
 
 * Fri Jul 19 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-1.20190719gitbf6c86a
 - Initial version
