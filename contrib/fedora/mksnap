@@ -22,7 +22,12 @@ sed -e "s/^%global commit [[:xdigit:]]\+/%global commit ${GITVER}/" \
 if [ "$1" = '-u' ]
 then
 	shift
-	update ${1:-*.spec}
+	if [ -d "$1" ]
+	then
+		update ${1}/*.spec
+	else
+		update ${1:-*.spec}
+	fi
 else
 	print
 fi
