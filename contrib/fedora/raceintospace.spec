@@ -37,6 +37,7 @@ BuildRequires:	libogg-devel libvorbis-devel libtheora-devel jsoncpp-devel
 BuildRequires:	physfs-devel libpng-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	libappstream-glib
+BuildRequires:	pandoc
 %if %{with clang}
 BuildRequires:	clang
 %else
