@@ -1,7 +1,7 @@
 %global gittag v1_1_0_fedora-c2
 
 %global archive_suffix tar.gz
-%global commit f3b482f
+%global commit dcdfc3f
 %global date 20191012
 
 %if 0%{?gittag:1}
@@ -114,7 +114,7 @@ appstream-util validate-relax doc/%{name}.appdata.xml
 pushd build
 %make_install
 popd
-install -m 0644 doc/raceintospace.appdata.xml %{_metainfodir}
+install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}
 
 %files
 %doc AUTHORS README.md
@@ -122,6 +122,7 @@ install -m 0644 doc/raceintospace.appdata.xml %{_metainfodir}
 %{_bindir}/raceintospace
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/pixmaps/%{name}.*
+%{_metainfodir}/%{name}.*
 
 %files data
 %{_datadir}/%{name}
