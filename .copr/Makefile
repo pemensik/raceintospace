@@ -12,6 +12,6 @@ prereq:
 	rpmbuild --version || dnf -y install rpm-build
 
 srpm: prereq
-	sh ${contribdir}/mkarchive
+	sh ${contribdir}/mkarchive --copr
 	sh ${contribdir}/mksnap -u ${spec}
-	rpmbuild --define '_sourcedir .' --define "_srcrpmdir ${outdir}" --define 'pkgversion git' -bs ${spec}
+	rpmbuild --define '_sourcedir .' --define "_srcrpmdir ${outdir}" --with copr -bs ${spec}

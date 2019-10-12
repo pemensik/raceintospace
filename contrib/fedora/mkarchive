@@ -6,12 +6,19 @@
 # mkarchive
 # rpmbuild --define '_sourcedir .' --define 'pkgversion git' -bs *.spec
 
-ARCHIVE_NAME=raceintospace-git
 ARCHIVE_SUFFIX=tar.gz
 COMMIT=HEAD
 CONTRIB="`dirname -- "$0"`"
 
 TARGET_DIR=`pwd`
+case "$1" in
+	--snap)
+		GITVER=$(git rev-list --no-walk --abbrev-commit $COMMIT) ;;
+	--copr|*)
+		GITVER='' ;;
+esac
+ARCHIVE_NAME="raceintospace-git${GITVER}"
+
 TARGET_FILE="${TARGET_DIR}/${ARCHIVE_NAME}.${ARCHIVE_SUFFIX}"
 
 ( cd "$CONTRIB/../.." && \

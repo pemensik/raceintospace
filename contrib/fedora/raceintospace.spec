@@ -1,19 +1,24 @@
 #%%global gittag v1_1_0_shared-libs
 
+%global archive_suffix tar.gz
+%global commit f3b482f
+%global date 20191012
+
 %if 0%{?gittag:1}
 # For use of github tag releases, not yet on main project
-#%global pkgversion %%{gittag}
-%global pkgversion 1_1_0_shared-libs
+%global pkgversion %%{gittag}
 %global github_owner pemensik
-%global archive_suffix tar.gz
 %else
 # Use direct commits
-%global commit 0a422b5
-%global date 20190907
 %global github_owner raceintospace
 %global snapinfo %{date}git%{commit}
-%{?!pkgversion:%global pkgversion %{version}-git%{commit}}
-%global archive_suffix tar.gz
+%if %{with copr}
+# Use fixed archive name, make srpm from current repository
+%global pkgversion git
+%else
+%global pkgversion git%{commit}
+#%%global gittag %%{commit}
+%endif
 %endif
 
 # Since gcc build is broken, use clang by default
