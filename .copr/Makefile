@@ -1,7 +1,7 @@
 
-spec ?= contrib/fedora/*.spec
 outdir ?= /var/tmp
 contribdir = contrib/fedora
+spec ?= ${contribdir}/*.spec
 
 all: srpm
 
@@ -11,7 +11,10 @@ prereq:
 	git --version || dnf -y install git-core
 	rpmbuild --version || dnf -y install rpm-build
 
+# Make a copy of spec and enable copr inside
 srpm: prereq
 	sh ${contribdir}/mkarchive --copr
-	sh ${contribdir}/mksnap -u ${spec}
-	rpmbuild --define '_sourcedir .' --define "_srcrpmdir ${outdir}" --with copr -bs ${spec}
+	cp ${spec} ${outdir}
+	sed -i -e 's/^%bcond_with\s\+copr/%bcond_without copr/' ${outdir}/*.spec
+	sh ${contribdir}/mksnap -u ${outdir}/*.spec
+	rpmbuild --define '_sourcedir .' --define "_srcrpmdir ${outdir}" -bs ${outdir}/*.spec
