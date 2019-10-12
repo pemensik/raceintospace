@@ -1,14 +1,12 @@
 %bcond_with copr
-
-%if %{without copr}
-%global gittag v1_1_0_fedora-c2
-%endif
+%bcond_without snapshot
 
 %global archive_suffix tar.gz
 %global commit 623777f
 %global date 20191012
 
-%if 0%{?gittag:1}
+%if %{without snapshot}
+%global gittag v1_1_0_fedora-c2
 # For use of github tag releases, not yet on main project
 %global pkgversion %(echo %{gittag} | sed -e s/^v//)
 %global github_owner pemensik
@@ -21,7 +19,6 @@
 %global pkgversion git
 %else
 %global pkgversion git%{commit}
-#%%global gittag %%{commit}
 %endif
 %endif
 
