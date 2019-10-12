@@ -1,7 +1,11 @@
+%bcond_with copr
+
+%if %{without copr}
 %global gittag v1_1_0_fedora-c2
+%endif
 
 %global archive_suffix tar.gz
-%global commit dcdfc3f
+%global commit 623777f
 %global date 20191012
 
 %if 0%{?gittag:1}
