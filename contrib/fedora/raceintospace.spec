@@ -1,5 +1,5 @@
 %bcond_with copr
-%bcond_without snapshot
+%bcond_with snapshot
 
 %global archive_suffix tar.gz
 %global commit 623777f
