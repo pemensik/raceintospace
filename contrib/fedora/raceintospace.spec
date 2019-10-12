@@ -6,7 +6,7 @@
 %global commit 623777f
 %global date 20191012
 
-%if %{without snapshot}
+%if %{without snapshot} && %{without copr}
 %global gittag v1_1_0_fedora-c2
 # For use of github tag releases, not yet on main project
 %global pkgversion %(echo %{gittag} | sed -e s/^v//)
