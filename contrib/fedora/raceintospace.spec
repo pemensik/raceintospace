@@ -102,7 +102,7 @@ popd
 
 %build
 pushd build
-make %{?_smp_mflags}
+%make_build
 popd
 pushd doc/manual
 pandoc -o manual.html manual.md
@@ -112,7 +112,8 @@ popd
 pushd build
 %make_install
 popd
-install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}
+install -d %{buildroot}%{_metainfodir}
+install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}/%{name}.appdata.xml
 
 %check
 desktop-file-validate icons/%{name}.desktop
