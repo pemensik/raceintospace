@@ -1,6 +1,5 @@
 %bcond_with copr
 %bcond_with snapshot
-%bcond_with net
 
 %global archive_suffix tar.gz
 %global commit 623777f
@@ -116,12 +115,8 @@ install -d %{buildroot}%{_metainfodir}
 install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}/%{name}.appdata.xml
 
 %check
-desktop-file-validate icons/%{name}.desktop
-%if %{with net}
-# Failures in mockbuild when validating screenshot urls
-# Skip validation until fixed
-appstream-util validate-relax doc/%{name}.appdata.xml
-%endif
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/%{name}.appdata.xml
 
 %files
 %doc AUTHORS README.md
@@ -140,7 +135,7 @@ appstream-util validate-relax doc/%{name}.appdata.xml
 %changelog
 * Sat Oct 12 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-2
 - Fix review comment #2 issues
-- Skip appdata check by default
+- Fix appcheck, test installed files
 
 * Fri Jul 19 2019 Petr Menšík <pemensik@redhat.com> - 1.1.0-1.20190719gitbf6c86a
 - Initial version
