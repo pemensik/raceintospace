@@ -27,8 +27,11 @@
 #include "draw.h"
 #include "place.h"
 #include "mc.h"
+#include "mission_util.h"
 #include "gr.h"
 #include "pace.h"
+#include "state_utils.h"
+#include "logging.h"
 
 int AsnCrew(char plr, char pad, char part);
 void FutFltsTxt(char nw, char col);
@@ -181,75 +184,39 @@ int HardCrewAssign(char plr, char pad, int misType, char newType)
     return M; // all the proper hardware and crews have been assigned
 }
 
+
+/* Clear all mission data and unassign crew for the Future mission
+ * on the given pad.
+ *
+ * Both sections of a Joint mission are cleared, given either pad.
+ *
+ * \param plr  The player index in Data.
+ * \param pad  The pad index for the Future mission.
+ */
 void ClrFut(char plr, char pad)
 {
-    char prime, back, men, i, prg;
-    prg = Data->P[plr].Future[pad].Prog;
+    ClearFutureCrew(plr, pad, CREW_ALL);
 
-    if (Data->P[plr].Future[pad].PCrew != 0) {
-        prime = Data->P[plr].Future[pad].PCrew - 1;
-    } else {
-        prime = -1;
+    if (Data->P[plr].Future[pad].Joint == 1) {
+        char part = Data->P[plr].Future[pad].part;
+        char jointPad = (part == 0) ? pad + 1 : pad - 1;
+
+        // if (! Data->P[plr].Future[jointPad].Joint ||
+        //     Data->P[plr].Future[jointPad].Joint == part) {
+        // }
+
+        ClearFutureCrew(plr, jointPad, CREW_ALL);
+
+        Data->P[plr].Future[jointPad].part = 0;
+        Data->P[plr].Future[jointPad].Prog = 0;
+        Data->P[plr].Future[jointPad].Duration = 0;
+        Data->P[plr].Future[jointPad].Joint = 0;
+        Data->P[plr].Future[jointPad].Men = 0;
+        Data->P[plr].Future[jointPad].MissionCode = Mission_None;
     }
 
-    if (Data->P[plr].Future[pad].BCrew != 0) {
-        back = Data->P[plr].Future[pad].BCrew - 1;
-    } else {
-        back = -1;
-    }
-
-    men = Data->P[plr].Future[pad].Men;
-
-    if (prime != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][prime][i] - 1].Prime = 0;
-        }
-
-    if (back != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][back][i] - 1].Prime = 0;
-        }
-
-    if (Data->P[plr].Future[pad].Joint == 1 && Data->P[plr].Future[pad + 1].part == 1) {
-        prg = Data->P[plr].Future[pad + 1].Prog;
-
-        if (Data->P[plr].Future[pad + 1].PCrew != 0) {
-            prime = Data->P[plr].Future[pad + 1].PCrew - 1;
-        } else {
-            prime = -1;
-        }
-
-        if (Data->P[plr].Future[pad + 1].BCrew != 0) {
-            back = Data->P[plr].Future[pad + 1].BCrew - 1;
-        } else {
-            back = -1;
-        }
-
-        men = Data->P[plr].Future[pad + 1].Men;
-
-        if (prime != -1)
-            for (i = 0; i < men; i++) {
-                Data->P[plr].Pool[Data->P[plr].Crew[prg][prime][i] - 1].Prime = 0;
-            }
-
-        if (back != -1)
-            for (i = 0; i < men; i++) {
-                Data->P[plr].Pool[Data->P[plr].Crew[prg][back][i] - 1].Prime = 0;
-            }
-
-        Data->P[plr].Future[pad + 1].part = 0;
-        Data->P[plr].Future[pad + 1].Prog = 0;
-        Data->P[plr].Future[pad + 1].PCrew = 0;
-        Data->P[plr].Future[pad + 1].BCrew = 0;
-        Data->P[plr].Future[pad + 1].Duration = 0;
-        Data->P[plr].Future[pad + 1].Joint = 0;
-        Data->P[plr].Future[pad + 1].Men = 0;
-        Data->P[plr].Future[pad + 1].MissionCode = Mission_None;
-    }
-
+    Data->P[plr].Future[pad].part = 0;
     Data->P[plr].Future[pad].Prog = 0;
-    Data->P[plr].Future[pad].PCrew = 0;
-    Data->P[plr].Future[pad].BCrew = 0;
     Data->P[plr].Future[pad].Men = 0;
     Data->P[plr].Future[pad].Duration = 0;
     Data->P[plr].Future[pad].Joint = 0;
@@ -274,30 +241,19 @@ int AsnCrew(char plr, char pad, char part)
     men = Data->P[plr].Future[pad].Men;
     prg = Data->P[plr].Future[pad].Prog;
 
-    if (Data->P[plr].Future[pad].PCrew == 0) {
-        prime = -1;
-    } else {
-        prime = Data->P[plr].Future[pad].PCrew - 1;
+    // Any existing astronaut *were* unassigned here. However...
+    // since preceding call to SecondHard sets Men, Prog fields,
+    // any previous astronaut crews can't be unassigned - the
+    // Men & Prog fields may be different from when they were assigned.
+    if (Data->P[plr].Future[pad].PCrew > 0 ||
+        Data->P[plr].Future[pad].BCrew > 0) {
+        CERROR7(future, "AsnCrew(plr = %d, pad = %d, part = %d) "
+                "is setting new crew before old crew PCrew = %d, "
+                "BCrew = %d has been unassigned",
+                plr, pad, part, Data->P[plr].Future[pad].PCrew,
+                Data->P[plr].Future[pad].BCrew);
     }
 
-    if (Data->P[plr].Future[pad].BCrew == 0) {
-        back = -1;
-    } else {
-        back = Data->P[plr].Future[pad].BCrew - 1;
-    }
-
-    if (prime != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][prime][i] - 1].Prime = 0;
-        }
-
-    if (back != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][back][i] - 1].Prime = 0;
-        }
-
-    Data->P[plr].Future[pad].PCrew = 0;
-    Data->P[plr].Future[pad].BCrew = 0;
     prime = -1;
     back = -1;
     count = 0;
@@ -773,41 +729,11 @@ void DrawHard(char mode, char pad, char mis, char plr)
     GetMisType(mis);
     draw_string(85, 70, Mis.Abbr);
 //Missions(plr,85,70,mis,0);
-    int MisCod;
-    MisCod = Data->P[plr].Future[pad].MissionCode;
 
-    if ((MisCod > 24 && MisCod < 32) || MisCod == 33 || MisCod == 34 || MisCod == 35 || MisCod == 37 || MisCod == 40 || MisCod == 41)
-        // Show duration level only on missions with a Duration step - Leon
-    {
-        switch (Data->P[plr].Future[pad].Duration) {
-        case 1:
-            draw_string(0, 0, "");
-            break;
-
-        case 2:
-            draw_string(0, 0, " (B)");
-            break;
-
-        case 3:
-            draw_string(0, 0, " (C)");
-            break;
-
-        case 4:
-            draw_string(0, 0, " (D)");
-            break;
-
-        case 5:
-            draw_string(0, 0, " (E)");
-            break;
-
-        case 6:
-            draw_string(0, 0, " (F)");
-            break;
-
-        default:
-            draw_string(0, 0, "");
-            break;
-        }
+    // Show duration level only on missions with a Duration step - Leon
+    if (IsDuration(Data->P[plr].Future[pad].MissionCode)) {
+        int duration = Data->P[plr].Future[pad].Duration;
+        draw_string(0, 0, GetDurationParens(duration));
     }
 
     draw_string(85, 85, "PAD: "); // Used to be followed by: "draw_number(0,0,pad+1);"--now shows PAD: A/B/C instead of 1/2/3 -Leon

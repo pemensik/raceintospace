@@ -41,25 +41,24 @@
 
 #include <ctype.h>
 
-void DrawPrefs(int where, char a1, char a2);
-void HModel(char mode, char tx);
-void Levels(char plr, char which, char x);
-void BinT(int x, int y, char st);
-void PLevels(char side, char wh);
-void CLevels(char side, char wh);
+struct DisplayContext {
+    boost::shared_ptr<display::PalettizedSurface> prefs_image;
+};
 
-void DrawPrefs(int where, char a1, char a2)
+void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx);
+void HModel(char mode, char tx);
+void Levels(char plr, char which, char x, DisplayContext &dctx);
+void BinT(int x, int y, char st);
+void PLevels(char side, char wh, DisplayContext &dctx);
+void CLevels(char side, char wh, DisplayContext &dctx);
+
+void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx)
 {
     int mode = 0;
 
     FadeOut(2, 10, 0, 0);
     helpText = "i013";
     keyHelpText = "K013";
-
-    boost::shared_ptr<display::PalettizedSurface> prefs_image(Filesystem::readImage("images/preferences.png"));
-    // fixme: don't use vhptr to draw this screen
-    vhptr->palette().copy_from(prefs_image->palette());
-    vhptr->draw(prefs_image, 0, 0);
 
     display::graphics.screen()->clear();
     prefs_image->exportPalette();
@@ -126,14 +125,14 @@ void DrawPrefs(int where, char a1, char a2)
     IOBox(243, 3, 316, 19);
     InBox(236, 34, 313, 42);
     InBox(6, 34, 83, 42);
-    PLevels(0, Data->Def.Plr1);
-    CLevels(0, a1);
-    PLevels(1, Data->Def.Plr2);
-    CLevels(1, a2);
-    Levels(0, Data->Def.Lev1, 1);
-    Levels(0, Data->Def.Ast1, 0);
-    Levels(1, Data->Def.Lev2, 1);
-    Levels(1, Data->Def.Ast2, 0);
+    PLevels(0, Data->Def.Plr1, dctx);
+    CLevels(0, a1, dctx);
+    PLevels(1, Data->Def.Plr2, dctx);
+    CLevels(1, a2, dctx);
+    Levels(0, Data->Def.Lev1, 1, dctx);
+    Levels(0, Data->Def.Ast1, 0, dctx);
+    Levels(1, Data->Def.Lev2, 1, dctx);
+    Levels(1, Data->Def.Ast2, 0, dctx);
 
     if (where == 0 || where == 2) {
         display::graphics.setForegroundColor(9);
@@ -158,12 +157,11 @@ void DrawPrefs(int where, char a1, char a2)
     draw_string(8, 40, &Data->P[ Data->Def.Plr1 ].Name[0]);
     draw_string(238, 40, &Data->P[ Data->Def.Plr2 ].Name[0]);
 
-    // todo: convert to draw commands
-    vhptr->copyTo(display::graphics.legacyScreen(), 153 + 34 * (Data->Def.Music), 0, 101, 31, 134, 60);
-    vhptr->copyTo(display::graphics.legacyScreen(), 221 + 34 * (Data->Def.Sound), 0, 101, 71, 134, 100);
+    display::graphics.legacyScreen()->draw(prefs_image, 153 + 34 * (Data->Def.Music), 0, 33, 29, 101, 31);
+    display::graphics.legacyScreen()->draw(prefs_image, 221 + 34 * (Data->Def.Sound), 0, 33, 29, 101, 71);
 
-    vhptr->copyTo(display::graphics.legacyScreen(), 216, 30, 147, 31, 218, 60);
-    vhptr->copyTo(display::graphics.legacyScreen(), 72 * (Data->Def.Anim), 90, 147, 71, 218, 100);
+    display::graphics.legacyScreen()->draw(prefs_image, 216, 30, 71, 29, 147, 31);
+    display::graphics.legacyScreen()->draw(prefs_image, 72 * (Data->Def.Anim), 90, 71, 29, 147, 71);
     HModel(Data->Def.Input, 1);
 
     // if (where==0 || where==2)
@@ -190,36 +188,29 @@ void DrawPrefs(int where, char a1, char a2)
  * Random Model is only available if options.feat_random_eq is enabled.
  * See the manual for more information.
  *
+ * Modifies the main screen palette & vhptr palette.
+ *
  * \param mode  The current model/roster setup (0-5).
  * \param tx    This option is unused, so who knows?
  */
 void HModel(char mode, char tx)
 {
-    SimpleHdr table;
+    char filename[128];
+    int image = (mode == 0 || mode == 1 || mode == 4) ? 1 : 0;
+    snprintf(filename, sizeof(filename), "images/prfx.but.%d.png", image);
 
-    FILE *in;
+    boost::shared_ptr<display::PalettizedSurface> prefsImage(
+        Filesystem::readImage(filename));
 
-    in = sOpen("PRFX.BUT", "rb", 0);
-    fseek(in, (mode == 0 || mode == 1 || mode == 4)*sizeof_SimpleHdr, SEEK_CUR);
-    fread_SimpleHdr(&table, 1, in);
-    fseek(in, table.offset, SEEK_SET);
-    display::LegacySurface local(127, 80);
-    {
-        display::AutoPal p(display::graphics.legacyScreen());
-        fread(&p.pal[112 * 3], 96 * 3, 1, in); // Individual Palette
-    }
-    fread(buffer, table.size, 1, in); // Get Image
-    fclose(in);
-
-    vhptr->palette().copy_from(display::graphics.legacyScreen()->palette());
-
-    RLED_img(buffer, local.pixels(), table.size, local.width(), local.height());
-
-    local.filter(0, 112, display::LegacySurface::Any);
+    // The loaded image versions have their own palettes, which are
+    // not included in the Preferences screen palette. They occupy
+    // an unused 96-color space - [112, 112 + 96) - to not interfere
+    // with the Preferences palette, but their palette must be added.
+    prefsImage->exportPalette(112, 112 + 95);
 
     fill_rectangle(96, 114, 223, 194, 0);
+    display::graphics.screen()->draw(prefsImage, 97, 115);
 
-    local.copyTo(display::graphics.legacyScreen(), 97, 115);
     display::graphics.setForegroundColor(11);
 
     if (mode == 2 || mode == 3) {
@@ -242,11 +233,12 @@ void HModel(char mode, char tx)
 }
 
 
-void Levels(char plr, char which, char x)
+void Levels(char plr, char which, char x, DisplayContext &dctx)
 {
     unsigned char v[2][2] = {{9, 239}, {161, 108}};
 
-    vhptr->copyTo(display::graphics.legacyScreen(), 0 + which * 72, 30 + x * 30, v[0][plr], v[1][x], v[0][plr] + 71, v[1][x] + 29);
+    display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + which * 72, 30 + x * 30,
+                                           71, 29, v[0][plr], v[1][x]);
 
     return;
 }
@@ -271,27 +263,27 @@ void BinT(int x, int y, char st)
     return;
 }
 
-void PLevels(char side, char wh)
+void PLevels(char side, char wh, DisplayContext &dctx)
 {
 
     if (side == 0) {
-        vhptr->copyTo(display::graphics.legacyScreen(), 0 + wh * 72,     0,   9,  55,  20,  74);
-        vhptr->copyTo(display::graphics.legacyScreen(), 0 + wh * 72 + 11,  0,  21,  55,  80,  84);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 11, 19,  9,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 59, 29, 21,  55);
     } else {
-        vhptr->copyTo(display::graphics.legacyScreen(), 0 + wh * 72,     0, 239,  55, 250,  74);
-        vhptr->copyTo(display::graphics.legacyScreen(), 0 + wh * 72 + 11,  0, 250,  55, 310,  84);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 11, 19, 239,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 60, 29, 250,  55);
     }
 
     return;
 }
 
-void CLevels(char side, char wh)
+void CLevels(char side, char wh, DisplayContext &dctx)
 {
 
     if (side == 0) {
-        vhptr->copyTo(display::graphics.legacyScreen(), 144, wh * 7, 9, 78, 17, 84);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 8, 6, 9, 78);
     } else {
-        vhptr->copyTo(display::graphics.legacyScreen(), 144, wh * 7, 239, 78, 247, 84);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 8, 6, 239, 78);
     }
 
     return;
@@ -348,6 +340,7 @@ void Prefs(int where)
     FILE *fin;
     char ch, Name[20], ksel = 0;
     int32_t size;
+    DisplayContext dctx;
 
     if (where != 3) {
         // If starting a new game, set default configuration
@@ -375,8 +368,11 @@ void Prefs(int where)
         }
     }
 
+    boost::shared_ptr<display::PalettizedSurface> prefs_image(Filesystem::readImage("images/preferences.png"));
+    dctx.prefs_image = prefs_image;
+
     /* Data->Def.Sound=Data->Def.Music=1; */
-    DrawPrefs(where, hum1, hum2);
+    DrawPrefs(where, hum1, hum2, dctx);
     WaitForMouseUp();
 
     while (1) {
@@ -516,7 +512,8 @@ void Prefs(int where)
                 Data->Def.Music = !Data->Def.Music;
                 // SetMusicVolume((Data->Def.Music==1)?100:0);
                 music_set_mute(!Data->Def.Music);
-                vhptr->copyTo(display::graphics.legacyScreen(), 153 + 34 * (Data->Def.Music), 0, 101, 31, 134, 60);
+                display::graphics.legacyScreen()->draw(dctx.prefs_image,
+                                                       153 + 34 * (Data->Def.Music), 0, 33, 29, 101, 31);
                 OutBox(100, 30, 135, 61);
                 /* Music Level */
             } else if ((x >= 100 && y >= 70 && x <= 135 && y <= 101 && mousebuttons > 0) || key == 'S') {
@@ -524,7 +521,8 @@ void Prefs(int where)
                 WaitForMouseUp();
                 Data->Def.Sound = !Data->Def.Sound;
                 MuteChannel(AV_SOUND_CHANNEL, !Data->Def.Sound);
-                vhptr->copyTo(display::graphics.legacyScreen(), 221 + 34 * (Data->Def.Sound), 0, 101, 71, 134, 100);
+                display::graphics.legacyScreen()->draw(dctx.prefs_image,
+                                                       221 + 34 * (Data->Def.Sound), 0, 33, 29, 101, 71);
                 OutBox(100, 70, 135, 101);
                 /* Sound Level */
             }
@@ -539,7 +537,7 @@ void Prefs(int where)
                     hum1 = 0;
                 }
 
-                CLevels(0, hum1);
+                CLevels(0, hum1, dctx);
                 OutBox(8, 77, 18, 85);
 
                 /* P1: Human/Computer */
@@ -550,7 +548,7 @@ void Prefs(int where)
                     Data->Def.Lev1 = 0;
                 }
 
-                Levels(0, Data->Def.Lev1, 1);
+                Levels(0, Data->Def.Lev1, 1, dctx);
             } else if ((x >= 8 && y >= 107 && x <= 81 && y <= 138 && (where == 0 || where == 3) && mousebuttons > 0) ||
                        ((where == 3 || where == 0) && ksel == 0 && key == 'G')) {
                 InBox(8, 107, 81, 138);
@@ -562,7 +560,7 @@ void Prefs(int where)
                     Data->Def.Lev1 = 0;
                 }
 
-                Levels(0, Data->Def.Lev1, 1);
+                Levels(0, Data->Def.Lev1, 1, dctx);
                 /* P1: Game Level */
             } else if ((x >= 8 && y >= 160 && x <= 81 && y <= 191 && ((where == 0 || where == 3) && mousebuttons > 0)) ||
                        ((where == 3 || where == 0) && ksel == 0 && key == 'L')) {
@@ -575,7 +573,7 @@ void Prefs(int where)
                     Data->Def.Ast1 = 0;
                 }
 
-                Levels(0, Data->Def.Ast1, 0);
+                Levels(0, Data->Def.Ast1, 0, dctx);
                 /* P1: Astro Level */
             }
 
@@ -589,7 +587,7 @@ void Prefs(int where)
                     hum2 = 0;
                 }
 
-                CLevels(1, hum2);
+                CLevels(1, hum2, dctx);
                 OutBox(238, 77, 248, 85);
 
                 /* P2:Human/Computer */
@@ -600,7 +598,7 @@ void Prefs(int where)
                     Data->Def.Lev2 = 0;
                 }
 
-                Levels(1, Data->Def.Lev2, 1);
+                Levels(1, Data->Def.Lev2, 1, dctx);
             } else if ((x >= 238 && y >= 107 && x <= 311 && y <= 138 && (where == 0 || where == 3) && mousebuttons > 0) ||
                        ((where == 0 || where == 3) && ksel == 1 && key == 'G')) {
                 InBox(238, 107, 311, 138);
@@ -612,7 +610,7 @@ void Prefs(int where)
                     Data->Def.Lev2 = 0;
                 }
 
-                Levels(1, Data->Def.Lev2, 1);
+                Levels(1, Data->Def.Lev2, 1, dctx);
                 /* P2: Game Level */
             } else if ((x >= 238 && y >= 160 && x <= 311 && y <= 191 && (where == 0 || where == 3) && mousebuttons > 0) ||
                        ((where == 0 || where == 3) && ksel == 1 && key == 'L')) {
@@ -625,7 +623,7 @@ void Prefs(int where)
                     Data->Def.Ast2 = 0;
                 }
 
-                Levels(1, Data->Def.Ast2, 0);
+                Levels(1, Data->Def.Ast2, 0, dctx);
                 /* P2: Astro Level */
             } else if ((x >= 6 && y >= 34 && x <= 83 && y <= 42 && (where == 3 || where == 0) && mousebuttons > 0) ||
                        ((where == 3 || where == 0) && ksel == 0 && key == 'N')) {

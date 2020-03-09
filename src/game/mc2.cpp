@@ -335,28 +335,33 @@ void MissionSteps(char plr, int mcode, int Mgoto, int step, int pad)
 
     case 'W':
         switch (Data->P[plr].Mission[pad].MissionCode) {
-        case  7:
+        case Mission_LunarFlyby:
             Mev[step].PComp = WhichPart(plr, Mev[step].Prest = -1);
             break;
 
-        case 11:
-            Mev[step].PComp = WhichPart(plr, Mev[step].Prest = 2);
+        case Mission_MercuryFlyby:
+            Mev[step].Prest = Prestige_MercuryFlyby;
+            Mev[step].PComp = WhichPart(plr, Mev[step].Prest);
             break;
 
-        case  9:
-            Mev[step].PComp = WhichPart(plr, Mev[step].Prest = 3);
+        case Mission_VenusFlyby:
+            Mev[step].Prest = Prestige_VenusFlyby;
+            Mev[step].PComp = WhichPart(plr, Mev[step].Prest);
             break;
 
-        case 10:
-            Mev[step].PComp = WhichPart(plr, Mev[step].Prest = 4);
+        case Mission_MarsFlyby:
+            Mev[step].Prest = Prestige_MarsFlyby;
+            Mev[step].PComp = WhichPart(plr, Mev[step].Prest);
             break;
 
-        case 12:
-            Mev[step].PComp = WhichPart(plr, Mev[step].Prest = 5);
+        case Mission_JupiterFlyby:
+            Mev[step].Prest = Prestige_JupiterFlyby;
+            Mev[step].PComp = WhichPart(plr, Mev[step].Prest);
             break;
 
-        case 13:
-            Mev[step].PComp = WhichPart(plr, Mev[step].Prest = 6);
+        case Mission_SaturnFlyby:
+            Mev[step].Prest = Prestige_SaturnFlyby;
+            Mev[step].PComp = WhichPart(plr, Mev[step].Prest);
             break;
         }
 
@@ -939,10 +944,12 @@ MisDur(char plr, char dur)
 /**
  * Compute and apply safety penalties to mission steps.
  *
+ *
  * TODO: This takes a parameter ms, used originally to determine the
  * maximum prestige requirement of the mission. However, it's no
  * longer used, and should be removed.
  *
+ * \note  This assumes the global variable Mis is correctly filled.
  * \param plr current player
  */
 void
@@ -950,7 +957,7 @@ MisSkip(char plr, char ms)
 {
     int i, j, diff;
 
-    diff = PrestMin(plr);
+    diff = PrestMin(plr, Mis);
 
     diff = MAX(diff, 0);
 

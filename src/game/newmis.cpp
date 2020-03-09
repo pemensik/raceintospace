@@ -16,6 +16,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <cassert>
+#include <fstream>
+
+#include <json/json.h>
+
 #include "display/graphics.h"
 #include "display/surface.h"
 #include "display/palettized_surface.h"
@@ -23,12 +28,15 @@
 #include "newmis.h"
 #include "Buzz_inc.h"
 #include "game_main.h"
+#include "downgrader.h"
 #include "draw.h"
+#include "ioexception.h"
 #include "mis_c.h"
 #include "place.h"
 #include "port.h"
 #include "radar.h"
 #include "mc.h"
+#include "mission_util.h"
 #include "rush.h"
 #include "sdlhelper.h"
 #include "gr.h"
@@ -43,7 +51,13 @@ char Month[12][11] = {
     "JULY ", "AUGUST ", "SEPTEMBER ", "OCTOBER ", "NOVEMBER ", "DECEMBER "
 };
 
+namespace   // Unnamed namespace part 1
+{
+
 void MisOrd(char num);
+Downgrader::Options LoadJsonDowngrades(std::string filename);
+
+}; // End of unnamed namespace part 1
 
 
 /** Function to compare two Missions
@@ -117,6 +131,9 @@ OrderMissions(void)
     return k;
 }
 
+namespace   // Unnamed namespace part 2
+{
+
 void MisOrd(char num)
 {
     int i, j = 0;
@@ -153,11 +170,12 @@ void MisOrd(char num)
     FadeOut(2, 10, 0, 0);
 }
 
+}; // End of unnamed namespace part 2
+
 
 void MisAnn(char plr, char pad)
 {
     int i, j, bud;
-    struct mStr Mis2;
     char k, hold, Digit[4], HelpFlag = 0;
     char pad_str[2] = {static_cast<char>('A' + pad), '\0'};
 
@@ -187,63 +205,43 @@ void MisAnn(char plr, char pad)
     display::graphics.setForegroundColor(1);
 
     GetMisType(Data->P[plr].Mission[pad].MissionCode);
-    memcpy(&Mis2, &Mis, sizeof Mis);
 
-
+    // Check to ensure there is a docking module in orbit before
+    // allowing a docking mission to proceed.
+    // This assumes an unmanned docking mission cannot be attempted
+    // without including a docking module.
     if ((Mis.mVab[0] & 0x10) == 0x10 && Data->P[plr].DockingModuleInOrbit <= 0) {
-        i = 0;
+        Downgrader::Options options = LoadJsonDowngrades("DOWNGRADES.JSON");
+        Downgrader replace(Data->P[plr].Mission[pad], options);
+        MissionType downgrade;
 
-        while (dg[Mis2.Index][i] != 0 && Mis.Doc == 1) {
-            GetMisType(dg[Mis2.Index][i]);
-            i++;
+        //  Assumes Mission_None is not a docking mission...
+        try {
+            while (IsDocking(replace.current().MissionCode)) {
+                replace.next();
+            }
+
+            downgrade = replace.current();
+        } catch (IOException &err) {
+            CCRITICAL3(baris, "Error loading mission downgrades: %s",
+                       err.what());
+            CWARNING2(baris, "Defaulting to Manned Earth Orbital.");
+            downgrade = Data->P[plr].Mission[pad];
+            downgrade.MissionCode = Mission_Earth_Orbital;
+            downgrade.Duration = 1;
         }
 
-        if (dg[Mis2.Index][i] == 0) {
-            Data->P[plr].Mission[pad].MissionCode = 4;    // new mission
-        } else {
-            Data->P[plr].Mission[pad].MissionCode = Mis.Index;    // new mission
-        }
-
+        Downgrade(plr, pad, downgrade);
         GetMisType(Data->P[plr].Mission[pad].MissionCode);
         HelpFlag = 1;
     }
 
     draw_string(127, 54, Mis.Abbr);
-    int MisCod;
-    MisCod = Data->P[plr].Mission[pad].MissionCode;
 
-    if ((MisCod > 24 && MisCod < 32) || MisCod == 33 || MisCod == 34 || MisCod == 35 || MisCod == 37 || MisCod == 40 || MisCod == 41)
-        // Show duration level only on missions with a Duration step - Leon
-    {
-        switch (Data->P[plr].Mission[pad].Duration) {
-        case 1:
-            draw_string(0, 0, "");
-            break;
-
-        case 2:
-            draw_string(0, 0, " (B)");
-            break;
-
-        case 3:
-            draw_string(0, 0, " (C)");
-            break;
-
-        case 4:
-            draw_string(0, 0, " (D)");
-            break;
-
-        case 5:
-            draw_string(0, 0, " (E)");
-            break;
-
-        case 6:
-            draw_string(0, 0, " (F)");
-            break;
-
-        default:
-            draw_string(0, 0, "");
-            break;
-        }
+    // Show duration level only on missions with a Duration step - Leon
+    if (IsDuration(Data->P[plr].Mission[pad].MissionCode)) {
+        int duration = Data->P[plr].Mission[pad].Duration;
+        draw_string(0, 0, GetDurationParens(duration));
     }
 
     IOBox(57, 68, 118, 84);
@@ -457,6 +455,7 @@ void MisAnn(char plr, char pad)
 
     WaitForMouseUp();
 
+    // TODO: There is no matching text for "I156" in the help.cdr file.
     if (HelpFlag) {
         Help("i156");    // Notification of being an Help
     }
@@ -538,3 +537,77 @@ void AI_Done(void)
     display::graphics.screen()->clear();
 }
 
+
+namespace   // Unnamed namespace part 3
+{
+
+/* Read the mission downgrade options from a file.
+ *
+ * The Json format is:
+ * {
+ *   "missions": [
+ *     { "mission": <Code>, "downgrades": [<Codes>] },
+ *     ...
+ *   ]
+ * }
+ *
+ * TODO: This method is actually copied from rush.cpp. It returns a
+ * Downgrader::Options instance, so listing it in rush.h would require
+ * including downgrader.h, which includes Buzz_inc.h.
+ * This is a temporary measure taken because duplicate code is easy to
+ * track and risks fewer side effects than spreading the packing issues
+ * caused by Buzz_inc.h
+ *
+ * \param filename  A Json-formatted data file.
+ * \return  A collection of MissionType.MissionCode-indexed downgrade
+ *          options.
+ * \throws IOException  If filename is not a readable Json file.
+ */
+Downgrader::Options LoadJsonDowngrades(std::string filename)
+{
+    char *path = locate_file(filename.c_str(), FT_DATA);
+
+    if (path == NULL) {
+        free(path);
+        throw IOException(std::string("Unable to open path to ") +
+                          filename);
+    }
+
+    std::ifstream input(path);
+    Json::Value doc;
+    Json::Reader reader;
+    bool success = reader.parse(input, doc);
+
+    if (! success) {
+        free(path);
+        throw IOException("Unable to parse JSON input stream");
+    }
+
+    assert(doc.isObject());
+    Json::Value &missionList = doc["missions"];
+    assert(missionList.isArray());
+
+    Downgrader::Options options;
+
+    for (int i = 0; i < missionList.size(); i++) {
+        Json::Value &missionEntry = missionList[i];
+        assert(missionEntry.isObject());
+
+        int missionCode = missionEntry.get("mission", -1).asInt();
+        assert(missionCode >= 0);
+        // assert(missionCode >= 0 && missionCode <= 61);
+
+        Json::Value &codeGroup = missionEntry["downgrades"];
+        assert(codeGroup.isArray());
+
+        for (int j = 0; j < codeGroup.size(); j++) {
+            options.add(missionCode, codeGroup[j].asInt());
+        }
+    }
+
+    input.close();
+    free(path);
+    return options;
+}
+
+}; // End of unnamed namespace part 3

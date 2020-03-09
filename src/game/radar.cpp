@@ -23,7 +23,10 @@
 // Programmed by Michael K McCarty
 //
 
+#include <cassert>
+
 #include "display/graphics.h"
+#include "display/palettized_surface.h"
 
 #include "radar.h"
 #include "gamedata.h"
@@ -34,8 +37,11 @@
 #include "news_suq.h"
 #include "place.h"
 #include "sdlhelper.h"
+#include "state_utils.h"
 #include "gr.h"
 #include "pace.h"
+#include "filesystem.h"
+
 
 void PadDraw(char plr, char pad);
 void PadPict(char poff);
@@ -399,7 +405,7 @@ void PadDraw(char plr, char pad)
 
     if (Data->P[plr].Mission[pad].Prog > 0)
         PatchMe(plr, 126, 40, Data->P[plr].Mission[pad].Prog - 1,
-                Data->P[plr].Mission[pad].Patch, 32);
+                Data->P[plr].Mission[pad].Patch);
 
     FadeIn(2, 10, 0, 0);
 
@@ -407,21 +413,28 @@ void PadDraw(char plr, char pad)
 }
 
 
-/** pad is +3 for compatibility with News so that
- * it will go ahead and scrub the mission automatically
+/**
+ * Scrubs a mission assigned for the current turn.
  *
+ * Clears all mission data and unassigns the crew.
+ *
+ * \param plr  The player index (0 for USA, 1 for USSR).
+ * \param pad  The launch pad index, or the pad + 3 for compatibility
+ *             with News to bypass the popup alert.
  */
 void ClrMiss(char plr, char pad)
 {
-    char prime, back, men, i, prg, temp = 0, padd;
-    padd = pad % 3;
+    char temp = 0;
+    char padd = pad % 3;
 
-//pad joint first part/second part/single
+    // If a Joint mission, sets padd to the launch pad of the first
+    // part. Displays an appropriate popup alert asking for confirmation
+    // before cancelling the mission.
     if (Data->P[plr].Mission[padd].Joint == 0) {
         if (!AI[plr] && pad < 3) {
             temp = Help("i111");
         }
-    } else
+    } else {
         switch (padd) {
         case 0:
             if (!AI[plr] && pad < 3) {
@@ -460,123 +473,83 @@ void ClrMiss(char plr, char pad)
             temp = 0;
             break;
         }
-
-    if (AI[plr]) {
-        temp = 1;
     }
 
-    if (temp == -1) {
+    if (! AI[plr] && temp == -1) {
         return;
     }
 
-    prg = Data->P[plr].Mission[padd].Prog;
+    // TODO: This should unassign hardware that has been reserved
+    // for this launch.
     Data->P[plr].Mission[padd].Hard[Mission_PrimaryBooster] = 0;
 
-    if (Data->P[plr].Mission[padd].PCrew != 0) {
-        prime = Data->P[plr].Mission[padd].PCrew - 1;
-    } else {
-        prime = -1;
-    }
-
-    if (Data->P[plr].Mission[padd].BCrew != 0) {
-        back = Data->P[plr].Mission[padd].BCrew - 1;
-    } else {
-        back = -1;
-    }
-
-    men = Data->P[plr].Mission[padd].Men;
-
-    if (prime != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][prime][i] - 1].Prime = 0;
-        }
-
-    if (back != -1)
-        for (i = 0; i < men; i++) {
-            Data->P[plr].Pool[Data->P[plr].Crew[prg][back][i] - 1].Prime = 0;
-        }
+    ClearMissionCrew(plr, padd, CREW_ALL);
 
     if (Data->P[plr].Mission[padd].Joint == 1) {
-        prg = Data->P[plr].Mission[padd + 1].Prog;
-
-        if (Data->P[plr].Mission[padd + 1].PCrew != 0) {
-            prime = Data->P[plr].Mission[padd + 1].PCrew - 1;
-        } else {
-            prime = -1;
-        }
-
-        if (Data->P[plr].Mission[padd + 1].BCrew != 0) {
-            back = Data->P[plr].Mission[padd + 1].BCrew - 1;
-        } else {
-            back = -1;
-        }
-
-        men = Data->P[plr].Mission[padd + 1].Men;
-
-        if (prime != -1)
-            for (i = 0; i < men; i++) {
-                Data->P[plr].Pool[Data->P[plr].Crew[prg][prime][i] - 1].Prime = 0;
-            }
-
-        if (back != -1)
-            for (i = 0; i < men; i++) {
-                Data->P[plr].Pool[Data->P[plr].Crew[prg][back][i] - 1].Prime = 0;
-            }
+        ClearMissionCrew(plr, padd + 1, CREW_ALL);
 
         Data->P[plr].Mission[padd + 1].part = 0;
         Data->P[plr].Mission[padd + 1].Prog = 0;
-        Data->P[plr].Mission[padd + 1].PCrew = 0;
-        Data->P[plr].Mission[padd + 1].BCrew = 0;
+        Data->P[plr].Mission[padd + 1].Duration = 0;
         Data->P[plr].Mission[padd + 1].Joint = 0;
         Data->P[plr].Mission[padd + 1].Men = 0;
         Data->P[plr].Mission[padd + 1].MissionCode = Mission_None;
     }
 
     Data->P[plr].Mission[padd].Prog = 0;
-    Data->P[plr].Mission[padd].PCrew = 0;
-    Data->P[plr].Mission[padd].BCrew = 0;
+    Data->P[plr].Mission[padd].Duration = 0;
     Data->P[plr].Mission[padd].Men = 0;
     Data->P[plr].Mission[padd].Joint = 0;
     Data->P[plr].Mission[padd].MissionCode = Mission_None;
 
-    if (Data->P[plr].Mission[padd].Joint == 1 && Data->P[plr].Mission[padd].part == 0) {
-        memset(&Data->P[plr].Mission[padd + 1], 0x00, sizeof(struct MissionType));
-    }
+    // Huh? These shouldn't ever trigger, because the Joint status
+    // for each was just set... -- rnyoakum
+    // if (Data->P[plr].Mission[padd].Joint == 1 &&
+    //     Data->P[plr].Mission[padd].part == 0) {
+    //     memset(&Data->P[plr].Mission[padd + 1], 0x00,
+    //            sizeof(struct MissionType));
+    // }
 
-    if (Data->P[plr].Mission[padd + 1].Joint == 1 && Data->P[plr].Mission[padd + 1].part == 1) {
-        memset(&Data->P[plr].Mission[padd + 1], 0x00, sizeof(struct MissionType));
-    }
+    // if (Data->P[plr].Mission[padd + 1].Joint == 1 &&
+    //     Data->P[plr].Mission[padd + 1].part == 1) {
+    //     memset(&Data->P[plr].Mission[padd + 1], 0x00,
+    //            sizeof(struct MissionType));
+    // }
 
     return;
 }
 
 
+/**
+ * Draw an image of the Launch Pad facility in the Launch Pad menu.
+ *
+ * Launch Pad images have their own 256-color palette that is exported
+ * to the main display. The first 32 colors are shared with the Port
+ * palettes.
+ *
+ * The pad images (poff) are:
+ *   0: USA Launch Pad, damaged
+ *   1: USSR Launch Pad, damaged
+ *   2: USA Launch Pad, scheduled launch
+ *   3: USSR Launch Pad, scheduled launch
+ *   4: USA Launch Pad, no mission
+ *   5: USSR Launch Pad, no mission
+ *
+ * \param poff  which of the pad images to display (0-6).
+ * \throws runtime_error  if Filesystem cannot load the image.
+ */
 void PadPict(char poff)
 {
-    SimpleHdr table;
-    FILE *in;
-    display::AutoPal p(display::graphics.legacyScreen());
+    assert(poff >= 0 && poff <= 5);
 
-    in = sOpen("LFACIL.BUT", "rb", 0);
-    fread_SimpleHdr(&table, 1, in);
-    fseek(in, 6 * sizeof_SimpleHdr, SEEK_SET);
-    fread(p.pal, 768, 1, in);
-    fseek(in, table.offset, SEEK_SET);
-    fread(buffer, table.size, 1, in);
+    char filename[128];
+    snprintf(filename, sizeof(filename),
+             "images/lfacil.but.%d.png", (int) poff);
+    boost::shared_ptr<display::PalettizedSurface> image(
+        Filesystem::readImage(filename));
 
-    display::LegacySurface local(148, 148);
-    display::LegacySurface local2(148, 148);
-
-    RLED_img(buffer, local.pixels(), table.size, local.width(), local.height());
-    fseek(in, (poff)*sizeof_SimpleHdr, SEEK_SET);
-    fread_SimpleHdr(&table, 1, in);
-    fseek(in, table.offset, SEEK_SET);
-    fread(buffer, table.size, 1, in);
-    RLED_img(buffer, local2.pixels(), table.size, local2.width(), local2.height());
-
-    local2.copyTo(display::graphics.legacyScreen(), 168, 28);
-
-    fclose(in);
+    image->exportPalette();
+    display::graphics.screen()->draw(image, 168, 28);
 }
 
 

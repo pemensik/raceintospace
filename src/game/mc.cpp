@@ -25,6 +25,7 @@
 
 #include "display/graphics.h"
 #include "display/surface.h"
+#include "display/palettized_surface.h"
 
 #include "mc.h"
 #include "Buzz_inc.h"
@@ -41,6 +42,7 @@
 #include "sdlhelper.h"
 #include "pace.h"
 #include "endianness.h"
+#include "filesystem.h"
 
 Equipment *MH[2][8];   // Pointer to the hardware
 struct MisAst MA[2][4];  //[2][4]
@@ -76,28 +78,25 @@ void MissionPast(char plr, char pad, int prest);
 int MaxFailPad(char which);
 
 
+/**
+ * Draws the Mission Control background image during missions.
+ *
+ * The background control.img.X.png images are 320x240 pixels.
+ *
+ * \param plr  0 for the USA, 1 for the USSR.
+ * \throws runtime_error  if Filesystem unable to read the image.
+ */
 void DrawControl(char plr)
 {
-    FILE *fin;
-    int32_t len;
-    display::AutoPal p(display::graphics.legacyScreen());
+    char filename[128];
+    snprintf(filename, sizeof(filename), "images/control.img.%d.png", plr);
 
-    fin = sOpen("CONTROL.IMG", "rb", 0);
-    fread(p.pal, 768, 1, fin);
-    fread(&len, 4, 1, fin);
-    Swap32bit(len);
-
-    if (plr == 1) {
-        fseek(fin, len, SEEK_CUR);
-        fread(p.pal, 768, 1, fin);
-        fread(&len, 4, 1, fin);
-        Swap32bit(len);
-    }
-
-    fread(vhptr->pixels(), len, 1, fin);
-    fclose(fin);
-    PCX_D(vhptr->pixels(), display::graphics.legacyScreen()->pixels(), (unsigned) len);
+    boost::shared_ptr<display::PalettizedSurface> background(
+        Filesystem::readImage(filename));
+    background->exportPalette();
+    display::graphics.screen()->draw(background, 0, 0);
 }
+
 
 void SetW(char ch)
 {
@@ -246,17 +245,17 @@ int Launch(char plr, char mis)
     // Search for Step 'W' on planetary steps
     //
 
-    if (mcode == 7) {
+    if (mcode == Mission_LunarFlyby) {
         SetW('E');
-    } else if (mcode == 9) {
+    } else if (mcode == Mission_VenusFlyby) {
         SetW('V');
-    } else if (mcode == 10) {
+    } else if (mcode == Mission_MarsFlyby) {
         SetW('M');
-    } else if (mcode == 11) {
+    } else if (mcode == Mission_MercuryFlyby) {
         SetW('R');
-    } else if (mcode == 12) {
+    } else if (mcode == Mission_JupiterFlyby) {
         SetW('J');
-    } else if (mcode == 13) {
+    } else if (mcode == Mission_SaturnFlyby) {
         SetW('S');
     }
 
@@ -270,7 +269,11 @@ int Launch(char plr, char mis)
      * 9 = venus flyby
      * 11 = mercury flyby
      */
-    fEarly = (!Mis.Days && !(mcode == 1 || mcode == 7 || mcode == 8 || mcode == 9 || mcode == 11));
+    fEarly = (!Mis.Days && !(mcode == Mission_Orbital_Satellite ||
+                             mcode == Mission_LunarFlyby ||
+                             mcode == Mission_Lunar_Probe ||
+                             mcode == Mission_VenusFlyby ||
+                             mcode == Mission_MercuryFlyby));
 
     STEPnum = STEP;
 
@@ -307,7 +310,7 @@ int Launch(char plr, char mis)
     memset(&Rep, 0x00, sizeof Rep);    // Clear Replay Data Struct
 
     /* whatever this mcode means... */
-    if (!AI[plr] && mcode >= 53) {
+    if (!AI[plr] && mcode >= Mission_HistoricalLanding) {
         avg = temp = 0;
 
         for (i = 0; Mev[i].loc != 0x7f; ++i) {
@@ -398,11 +401,23 @@ void MissionPast(char plr, char pad, int prest)
         Data->P[plr].History[loc].Patch[1] = Data->P[plr].Mission[pad + 1].Patch;
     }
 
-    // Flag for if mission is done
-    Data->P[plr].History[loc].Event = Data->P[plr].History[loc].Saf = 0;
-    Data->P[plr].History[loc].Event = (mc == 10) ? 2 : ((mc == 12) ? 7 : ((mc == 13) ? 7 : 0));
+    // TODO: There's a lot of what appears to be duplicated code here,
+    // concerning Data->P[plr].History[loc].Event & .Saf
 
-    if ((mc == 10 || mc == 12 || mc == 13) && prest != 0) {
+    // Flag for if mission is done
+    Data->P[plr].History[loc].Event = 0;
+    Data->P[plr].History[loc].Saf = 0;
+
+    if (mc == Mission_MarsFlyby) {
+        Data->P[plr].History[loc].Event = 2;
+    } else if (mc == Mission_JupiterFlyby) {
+        Data->P[plr].History[loc].Event = 4;
+    } else if (mc == Mission_SaturnFlyby) {
+        Data->P[plr].History[loc].Event = 7;
+    }
+
+    if ((mc == Mission_MarsFlyby || mc == Mission_JupiterFlyby ||
+         mc == Mission_SaturnFlyby) && prest != 0) {
         Data->P[plr].History[loc].Event = 0;
     }
 
@@ -410,7 +425,8 @@ void MissionPast(char plr, char pad, int prest)
         Data->P[plr].History[loc].Saf = MH[0][3]->MisSaf;
     }
 
-    if (!(mc == 10 || mc == 12 || mc == 13)) {
+    if (!(mc == Mission_MarsFlyby || mc == Mission_JupiterFlyby ||
+          mc == Mission_SaturnFlyby)) {
         Data->P[plr].History[loc].Event = Data->P[plr].History[loc].Saf = 0;
     }
 

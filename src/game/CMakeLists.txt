@@ -27,6 +27,7 @@ set(game_sources
   budget.cpp
   crash.cpp
   crew.cpp
+  downgrader.cpp
   draw.cpp
   endgame.cpp
   endianness.cpp
@@ -40,6 +41,7 @@ set(game_sources
   game_main.cpp
   gr.cpp
   hardef.cpp
+  hardware.cpp
   hardware_buttons.cpp
   intel.cpp
   intro.cpp
@@ -50,6 +52,7 @@ set(game_sources
   mc2.cpp
   mis_c.cpp
   mis_m.cpp
+  mission_util.cpp
   mmfile.cpp
   museum.cpp
   newmis.cpp
@@ -74,6 +77,7 @@ set(game_sources
   rush.cpp
   sdlhelper.cpp
   start.cpp
+  state_utils.cpp
   utils.cpp
   vab.cpp
   )
@@ -101,6 +105,8 @@ endif()
 set(test_dir ${PROJECT_SOURCE_DIR}/test)
 set(test_sources
   ${test_dir}/game/dummy_test.cpp
+  ${test_dir}/game/mission_test.cpp
+  ${test_dir}/game/downgrade_test.cpp
   ${test_dir}/game/roster_test.cpp
   )
 

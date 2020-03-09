@@ -62,6 +62,7 @@
 #include "gr.h"
 #include "crash.h"
 #include "endianness.h"
+#include "crew.h"
 
 #ifdef CONFIG_MACOSX
 // SDL.h needs to be included here to replace the original main() with
@@ -92,7 +93,6 @@ char df;
 char IDLE[2];
 char *buffer;
 display::LegacySurface *vhptr;
-display::LegacySurface *vhptr2;
 char pNeg[NUM_PLAYERS][MAX_MISSIONS];
 int32_t xMODE;
 char MAIL = -1;
@@ -159,7 +159,6 @@ void MainLoop(void);
 void DockingKludge(void);
 void OpenEmUp(void);
 void CloseEmUp(unsigned char error, unsigned int value);
-void FreePadMen(char plr, struct MissionType *XMis);
 void VerifyCrews(char plr);
 
 
@@ -378,7 +377,11 @@ int CheckIfMissionGo(char plr, char launchIdx)
 
     // Always a go for Unmanned missions
     /** \todo introduce mission attribute "manned vs. unmanned" */
-    if (mcode == 1 || mcode == 3 || mcode == 5 || (mcode >= 7 && mcode <= 13) || mcode == 15) {
+    if (mcode == Mission_Orbital_Satellite ||
+        mcode == Mission_U_SubOrbital ||
+        mcode == Mission_Unmanned_Earth_Orbital ||
+        (mcode >= Mission_LunarFlyby && mcode <= Mission_SaturnFlyby) ||
+        mcode == Mission_U_Orbital_D) {
         return 1;
     }
 
@@ -721,29 +724,6 @@ void DockingKludge(void)
     return;
 }
 
-/** Reset Crews on a particular Mission
- */
-void FreePadMen(char plr, struct MissionType *XMis)
-{
-    int i, c;
-
-    if (XMis->PCrew > 0) {  // Remove Primary Crew
-        for (i = 0; i < Data->P[plr].CrewCount[XMis->Prog][XMis->PCrew - 1]; i++) {
-            c = Data->P[plr].Crew[XMis->Prog][XMis->PCrew - 1][i] - 1;
-            Data->P[plr].Pool[c].Prime = 0;
-        }
-    }
-
-    if (XMis->BCrew > 0) {  // Remove Backup Crew
-        for (i = 0; i < Data->P[plr].CrewCount[XMis->Prog][XMis->BCrew - 1]; i++) {
-            c = Data->P[plr].Crew[XMis->Prog][XMis->BCrew - 1][i] - 1;
-            Data->P[plr].Pool[c].Prime = 0;
-        }
-    }
-
-    return;
-}
-
 
 /** Destroy Pad and Reset any Crews affected
  *
@@ -758,32 +738,10 @@ void DestroyPad(char plr, char pad, int cost, char mode)
 
     Data->P[plr].LaunchFacility[pad] = cost; // Destroys pad
 
-    AMis = (mode == 0) ? &Data->P[plr].Future[pad] : &Data->P[plr].Mission[pad];
-
-    if (AMis != NULL) {
-        if (AMis->Joint == 1) {
-            if (AMis->part == 0) {
-                BMis = &AMis[1];
-            }
-
-            if (AMis->part == 1) {
-                BMis = &AMis[-1];
-            }
-        }
-
-        if (AMis->Men != 0) {
-            FreePadMen(plr, AMis);
-        }
-
-        memset(AMis, 0x00, sizeof(struct MissionType));
-    }
-
-    if (BMis != NULL) {
-        if (BMis->Men != 0) {
-            FreePadMen(plr, BMis);
-        }
-
-        memset(BMis, 0x00, sizeof(struct MissionType));
+    if (mode == 0) {
+        ClrFut(plr, pad);
+    } else {
+        ClrMiss(plr, pad);
     }
 
     return;

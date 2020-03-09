@@ -1,9 +1,15 @@
 #ifndef INTEL_H
 #define INTEL_H
 
-void DispIt(int x1, int y1, int x2, int y2, int s, int t);
+#include <boost/shared_ptr.hpp>
+
+namespace display
+{
+class LegacySurface;
+}
+
 void Intel(char plr);
 void IntelPhase(char plr, char pt);
-void Load_CIA_BUT(void);
+boost::shared_ptr<display::LegacySurface> LoadCIASprite();
 
 #endif // INTEL_H
