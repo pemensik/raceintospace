@@ -12,3 +12,17 @@ synced_files:
 upstream_package_name: raceintospace
 # downstream (Fedora) RPM package name
 downstream_package_name: raceintospace
+
+upstream_tag_template: v{version}
+current_version_command: [/bin/sh, -c, "git describe --tags --match '*.*' | sed -e 's/^v//'"]
+
+
+jobs:
+  - job: copr_build
+    trigger: release
+    metadata:
+      targets:
+        - fedora-stable
+      branch: fedora
+      owner: pemensik
+      project: raceintospace
