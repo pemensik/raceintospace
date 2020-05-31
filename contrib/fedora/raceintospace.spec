@@ -113,6 +113,7 @@ pushd build
 popd
 install -d %{buildroot}%{_metainfodir}
 install -m 0644 doc/raceintospace.appdata.xml %{buildroot}%{_metainfodir}/%{name}.appdata.xml
+desktop-file-install icons/raceintospace.desktop
 
 %check
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
