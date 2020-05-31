@@ -23,6 +23,8 @@
 // Programmed by Michael K McCarty
 //
 
+// This file controls the Budget Office and the Viewing Stand
+
 #include "display/graphics.h"
 #include "display/surface.h"
 #include "display/palettized_surface.h"
@@ -719,7 +721,13 @@ void Viewing(char plr)
         key = 0;
         GetMouse();
 
-        if (ctop > 0 && key == 0x4900) { // Page Up Key
+        if (ctop > 0 && key == K_HOME) { // Home Key
+            ctop = 1;
+
+            DrawVText(ctop);
+            bzdelay(DELAYCNT);
+        }
+        if (ctop > 0 && key == K_PGUP) { // Page Up Key
             ctop -= 7;
 
             if (ctop < 0) {
@@ -730,12 +738,19 @@ void Viewing(char plr)
             bzdelay(DELAYCNT);
         }
 
-        if (ctop < bline && key == 0x5100) { // Page Down Key
+        if (ctop < bline && key == K_PGDN) { // Page Down Key
             ctop += 7;
 
             if (ctop > bline) {
                 ctop = bline;
             }
+
+            DrawVText(ctop);
+            bzdelay(DELAYCNT);
+        }
+        
+        if (ctop < bline && key == K_END) { // End Key
+            ctop = bline;
 
             DrawVText(ctop);
             bzdelay(DELAYCNT);
@@ -807,16 +822,16 @@ void Viewing(char plr)
             }
 
             if (olderMiss != 1) {
-                OutBox(244, 28, 313, 38);    //Boton Newer
+                OutBox(244, 28, 313, 38);    //Button Newer
             }
 
-            InBox(6, 28, 75, 38); //Botton Older
-            // Debe dibujar la mission
+            InBox(6, 28, 75, 38); //Button Older
+            // Debe dibujar la mission [Need to draw the mission]
             DrawPreviousMissions(plr);
             bzdelay(DELAYCNT);
 
             if (olderMiss != Data->P[plr].PastMissionCount - 2 && Data->P[plr].PastMissionCount > 3) {
-                OutBox(6, 28, 75, 38);    //Boton Older
+                OutBox(6, 28, 75, 38);    //Button Older
             }
         } else if (key == 'N' || (mousebuttons > 0 && x >= 244 && y >= 28 && x <= 313 && y <= 38))  {
             olderMiss--;
@@ -826,16 +841,16 @@ void Viewing(char plr)
             }
 
             if (olderMiss != Data->P[plr].PastMissionCount - 2 && Data->P[plr].PastMissionCount > 3) {
-                OutBox(6, 28, 75, 38);    //Boton Older
+                OutBox(6, 28, 75, 38);    //Button Older
             }
 
-            InBox(244, 28, 313, 38); //Botton Newer
-            // Debe dibujar la mission
+            InBox(244, 28, 313, 38); //Button Newer
+            // Debe dibujar la mission [Need to draw the mission]
             DrawPreviousMissions(plr);
             bzdelay(DELAYCNT);
 
             if (olderMiss != 1) {
-                OutBox(244, 28, 313, 38);    //Boton Newer
+                OutBox(244, 28, 313, 38);    //Button Newer
             }
         }
     }

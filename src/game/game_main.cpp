@@ -53,10 +53,10 @@
 #include "place.h"
 #include "port.h"
 #include "prefs.h"
-#include "radar.h"
 #include "records.h"
 #include "review.h"
 #include "start.h"
+#include "state_utils.h"
 #include "pace.h"
 #include "sdlhelper.h"
 #include "gr.h"
@@ -553,7 +553,7 @@ restart:                              // ON A LOAD PROG JUMPS TO HERE
                 if ((Data->P[plr[i] % NUM_PLAYERS].Mission[0].MissionCode > 6 ||
                      Data->P[plr[i] % NUM_PLAYERS].Mission[1].MissionCode > 6 ||
                      Data->P[plr[i] % NUM_PLAYERS].Mission[2].MissionCode > 6) &&
-                    (NOCOPRO && !PUSSY)) {
+                    (NOCOPRO && !EASYMODE)) {
                     xMODE &= ~xMODE_NOCOPRO;
                 }
 
@@ -600,7 +600,7 @@ restart:                              // ON A LOAD PROG JUMPS TO HERE
             if (Data->P[Order[i].plr].Mission[Order[i].loc].MissionCode) {
                 if (AI[Order[i].plr] == 1) {
                     if (!CheckIfMissionGo(Order[i].plr, Order[i].loc)) {
-                        ClrMiss(Order[i].plr, Order[i].loc);
+                        ScrubMission(Order[i].plr, Order[i].loc);
                     }
                 }
 
@@ -741,7 +741,7 @@ void DestroyPad(char plr, char pad, int cost, char mode)
     if (mode == 0) {
         ClrFut(plr, pad);
     } else {
-        ClrMiss(plr, pad);
+        ScrubMission(plr, pad);
     }
 
     return;

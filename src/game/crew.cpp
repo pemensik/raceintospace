@@ -16,6 +16,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+// This file handles choosing type of spacecraft (if applicable) and crew(s) to man it (if applicable)
+
 #include <string>
 
 #include "display/graphics.h"
@@ -241,7 +243,7 @@ int AsnCrew(char plr, char pad, char part)
     men = Data->P[plr].Future[pad].Men;
     prg = Data->P[plr].Future[pad].Prog;
 
-    // Any existing astronaut *were* unassigned here. However...
+    // Any existing astronauts *were* unassigned here. However...
     // since preceding call to SecondHard sets Men, Prog fields,
     // any previous astronaut crews can't be unassigned - the
     // Men & Prog fields may be different from when they were assigned.
@@ -258,7 +260,7 @@ int AsnCrew(char plr, char pad, char part)
     back = -1;
     count = 0;
 
-    for (i = 0; i < ASTRONAUT_CREW_MAX; i++) { // Flight Crew Settings
+    for (i = 0; i < ASTRONAUT_CREW_MAX; i++) {  // Flight Crew Settings
         if (Data->P[plr].Crew[prg][i][0] == 0 || (options.feat_no_cTraining == 0 && Data->P[plr].Pool[Data->P[plr].Crew[prg][i][0] - 1].Moved == 0) //No Capsule Training, Nikakd, 10/8/10
             || Data->P[plr].Pool[Data->P[plr].Crew[prg][i][0] - 1].Prime > 0) {
             stflag = 0;
@@ -349,7 +351,7 @@ int AsnCrew(char plr, char pad, char part)
         key = 0;
         GetMouse();
 
-        for (i = 0; i < ASTRONAUT_CREW_MAX; i++) { // Flight Crew Settings
+        for (i = 0; i < ASTRONAUT_CREW_MAX; i++) {  // Flight Crew Settings
             if (Data->P[plr].Crew[prg][i][0] == 0 || (options.feat_no_cTraining == 0 && Data->P[plr].Pool[Data->P[plr].Crew[prg][i][0] - 1].Moved == 0) //No Capsule Training, Nikakd, 10/8/10
                 || Data->P[plr].Pool[Data->P[plr].Crew[prg][i][0] - 1].Prime > 0) {
                 stflag = 0;
@@ -463,7 +465,7 @@ int AsnCrew(char plr, char pad, char part)
                 delay(110);
             }
         } // End Backup Set
-    } // end-while
+    } // end while
 }
 
 void FutFltsTxt(char nw, char col)
@@ -720,9 +722,9 @@ void DrawHard(char mode, char pad, char mis, char plr)
     display::graphics.setForegroundColor(11);
 
     if (mode == 0) {
-        draw_string(90, 54, "SELECT PRIMARY VEHICLE");
+        draw_string(99, 54, "SELECT PRIMARY VEHICLE");
     } else {
-        draw_string(90, 54, "SELECT SECONDARY VEHICLE");
+        draw_string(92, 54, "SELECT SECONDARY VEHICLE");
     }
 
     display::graphics.setForegroundColor(1);
@@ -752,17 +754,27 @@ void DrawHard(char mode, char pad, char mis, char plr)
         break;
     }
 
+    std::string s1 = Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name;  // These two lines on each program in this section are to better center the name of the
+    size_t i1 = std::count(s1.begin(), s1.end(), 'I');                     // spacecraft when it contains an "I", since that's narrower than other letters.  -Leon
     lenprogname = (3 - strlen(Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name)) * 3;
-    draw_string(111 + lenprogname, 109, Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name); //draw_number(0,0,94+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name))*3);
+    draw_string(111 + lenprogname + i1, 109, Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name); //draw_number(0,0,94+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_ONE_MAN_CAPSULE].Name))*3);
+    std::string s2 = Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name;  
+    size_t i2 = std::count(s2.begin(), s2.end(), 'I');
     lenprogname = (3 - strlen(Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name)) * 3;
-    draw_string(190 + lenprogname, 109, Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name); //draw_number(0,0,174+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name))*3);
+    draw_string(190 + lenprogname + i2, 109, Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name); //draw_number(0,0,174+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_TWO_MAN_CAPSULE].Name))*3);
+    std::string s3 = Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name; 
+    size_t i3 = std::count(s3.begin(), s3.end(), 'I'); 
     lenprogname = (3 - strlen(Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name)) * 3;
-    draw_string(111 + lenprogname, 126, Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name); //draw_number(0,0,94+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name))*3);
+    draw_string(111 + lenprogname + i3, 126, Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name); //draw_number(0,0,94+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_THREE_MAN_CAPSULE].Name))*3);
+    std::string sM = Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name;
+    size_t iM = std::count(sM.begin(), sM.end(), 'I');
     lenprogname = (3 - strlen(Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name)) * 3;
-    draw_string(190 + lenprogname, 126, Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name); //draw_number(0,0,174+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name))*3);
+    draw_string(190 + lenprogname + iM, 126, Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name); //draw_number(0,0,174+18+(3-strlen(Data->P[plr].Manned[MANNED_HW_MINISHUTTLE].Name))*3);
+    std::string s4 = Data->P[plr].Manned[MANNED_HW_FOUR_MAN_CAPSULE].Name; 
+    size_t i4 = std::count(s4.begin(), s4.end(), 'I'); 
     lenprogname = (3 - strlen(Data->P[plr].Manned[MANNED_HW_FOUR_MAN_CAPSULE].Name)) * 3;
-    draw_string(149 + 4 + lenprogname, 143, Data->P[plr].Manned[MANNED_HW_FOUR_MAN_CAPSULE].Name);
-    draw_string(143, 163, "CANCEL");
+    draw_string(148 + 4 + lenprogname + i4, 143, Data->P[plr].Manned[MANNED_HW_FOUR_MAN_CAPSULE].Name);
+    draw_string(143, 162, "CANCEL");
     return;
 }
 
@@ -792,7 +804,7 @@ int HardRequest(char plr, char mode, char mis, char pad)
     keyHelpText = "k201";
 
     for (i = 0; i < 5; i++) {
-        if (Data->P[plr].Manned[i].Num >= 0) { // Is program purchased
+        if (Data->P[plr].Manned[i].Num >= 0) { // Is program purchased?
             pr[i] = 1;
             t++;
         } else {
@@ -813,7 +825,7 @@ int HardRequest(char plr, char mode, char mis, char pad)
 
     // TODO: Just compare hardware duration with mission duration?
     // TODO: Check if Mis.Days is indexed the same as
-    //   struct MissionType.Duration?
+    //       struct MissionType.Duration?
 
     // Gemini/Voskhod cannot attempt Duration F
     if (Data->P[plr].Future[pad].Duration > 5 || Mis.Days > 5) {
@@ -838,7 +850,7 @@ int HardRequest(char plr, char mode, char mis, char pad)
         pr[0] = pr[1] = pr[3] = pr[4] = 0;
     }
 
-    // Jupiter/Kvartet may not attempt docking missions.
+    // Jupiter/Kvartet can not attempt docking missions.
     if (Mis.Doc == 1) {
         pr[4] = 0;
     }
@@ -995,7 +1007,7 @@ int SecondHard(char plr, char mode, char mis, char pad)
 
     // TODO: Just compare hardware duration with mission duration?
     // TODO: Check if Mis.Days is indexed the same as
-    //   struct MissionType.Duration?
+    //       struct MissionType.Duration?
 
     // Gemini/Voskhod cannot attempt Duration F
     if (Data->P[plr].Future[pad].Duration > 5 || Mis.Days > 5) {
@@ -1072,19 +1084,19 @@ int SecondHard(char plr, char mode, char mis, char pad)
                 InBox(83, 102, 156, 112);
                 i = 1;
                 WaitForMouseUp();
-            } // One Man Program
+            } // One-Man Program
             else if (((x >= 163 && y >= 102 && x <= 236 && y <= 112 && mousebuttons != 0) || key == '2') && prog[1] != 0 && prg != 3) {
                 men = 2;
                 InBox(163, 102, 236, 112);
                 i = 2;
                 WaitForMouseUp();
-            } // Two Man Program
+            } // Two-Man Program
             else if (((x >= 83 && y >= 119 && x <= 156 && y <= 129 && mousebuttons != 0) || key == '3') && prog[2] != 0 && prg != 2) {
                 men = 3;
                 InBox(83, 119, 156, 129);
                 i = 3;
                 WaitForMouseUp();
-            } // Three Man Program
+            } // Three-Man Program
             else if (((x >= 163 && y >= 119 && x <= 236 && y <= 129 && mousebuttons != 0) || key == '4') && prog[3] != 0 && prg != 4) {
                 men = 3;
                 InBox(163, 119, 236, 129);
@@ -1096,7 +1108,7 @@ int SecondHard(char plr, char mode, char mis, char pad)
                 InBox(123, 136, 196, 146);
                 i = 5;
                 WaitForMouseUp();
-            } // Four Man Program
+            } // Four-Man Program
             else if ((x >= 83 && y >= 156 && x <= 236 && y <= 165 && mousebuttons != 0) || key == K_ENTER) {
                 InBox(83, 156, 236, 165);
                 WaitForMouseUp();

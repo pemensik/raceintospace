@@ -16,10 +16,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <cassert>
-#include <fstream>
-
-#include <json/json.h>
+// This page controls the last-minute confirmation screen just before each launch
 
 #include "display/graphics.h"
 #include "display/surface.h"
@@ -34,7 +31,7 @@
 #include "mis_c.h"
 #include "place.h"
 #include "port.h"
-#include "radar.h"
+#include "state_utils.h"
 #include "mc.h"
 #include "mission_util.h"
 #include "rush.h"
@@ -55,7 +52,6 @@ namespace   // Unnamed namespace part 1
 {
 
 void MisOrd(char num);
-Downgrader::Options LoadJsonDowngrades(std::string filename);
 
 }; // End of unnamed namespace part 1
 
@@ -188,7 +184,7 @@ void MisAnn(char plr, char pad)
     draw_flag(47, 26, plr);
     InBox(122, 25, 276, 65);
     display::graphics.setForegroundColor(9);
-    draw_string(127, 33, "SCHEDULED LAUNCH"); //was 154,33
+    draw_string(127, 33, "SCHEDULED LAUNCH");  //was 154,33
     display::graphics.setForegroundColor(34);
     draw_string(127, 40, "LAUNCH FACILITY: ");
     display::graphics.setForegroundColor(1);
@@ -455,9 +451,18 @@ void MisAnn(char plr, char pad)
 
     WaitForMouseUp();
 
-    // TODO: There is no matching text for "I156" in the help.cdr file.
+    // If the mission had a Docking requirement which could not be
+    // fulfilled (due to an absent DM), it is automatically downgraded.
+    // If there is no viable downgrade, it will have to be scrubbed.
     if (HelpFlag) {
-        Help("i156");    // Notification of being an Help
+        if (Data->P[plr].Mission[pad].MissionCode == Mission_None) {
+            Help("i156");
+            ScrubMission(plr, pad);
+            FadeOut(2, 10, 0, 0);
+            return;
+        } else {
+            Help("i157");
+        }
     }
 
     while (1) {
@@ -484,8 +489,9 @@ void MisAnn(char plr, char pad)
             InBox(207, 70, 264, 82);
             WaitForMouseUp();
             OutBox(207, 70, 264, 82);
-            {
-                ClrMiss(plr, pad);
+
+            if (ScrubMissionQuery(plr, pad)) {
+                ScrubMission(plr, pad);
             }
 
             if (Data->P[plr].Mission[pad].MissionCode == Mission_None) {
@@ -536,78 +542,3 @@ void AI_Done(void)
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
 }
-
-
-namespace   // Unnamed namespace part 3
-{
-
-/* Read the mission downgrade options from a file.
- *
- * The Json format is:
- * {
- *   "missions": [
- *     { "mission": <Code>, "downgrades": [<Codes>] },
- *     ...
- *   ]
- * }
- *
- * TODO: This method is actually copied from rush.cpp. It returns a
- * Downgrader::Options instance, so listing it in rush.h would require
- * including downgrader.h, which includes Buzz_inc.h.
- * This is a temporary measure taken because duplicate code is easy to
- * track and risks fewer side effects than spreading the packing issues
- * caused by Buzz_inc.h
- *
- * \param filename  A Json-formatted data file.
- * \return  A collection of MissionType.MissionCode-indexed downgrade
- *          options.
- * \throws IOException  If filename is not a readable Json file.
- */
-Downgrader::Options LoadJsonDowngrades(std::string filename)
-{
-    char *path = locate_file(filename.c_str(), FT_DATA);
-
-    if (path == NULL) {
-        free(path);
-        throw IOException(std::string("Unable to open path to ") +
-                          filename);
-    }
-
-    std::ifstream input(path);
-    Json::Value doc;
-    Json::Reader reader;
-    bool success = reader.parse(input, doc);
-
-    if (! success) {
-        free(path);
-        throw IOException("Unable to parse JSON input stream");
-    }
-
-    assert(doc.isObject());
-    Json::Value &missionList = doc["missions"];
-    assert(missionList.isArray());
-
-    Downgrader::Options options;
-
-    for (int i = 0; i < missionList.size(); i++) {
-        Json::Value &missionEntry = missionList[i];
-        assert(missionEntry.isObject());
-
-        int missionCode = missionEntry.get("mission", -1).asInt();
-        assert(missionCode >= 0);
-        // assert(missionCode >= 0 && missionCode <= 61);
-
-        Json::Value &codeGroup = missionEntry["downgrades"];
-        assert(codeGroup.isArray());
-
-        for (int j = 0; j < codeGroup.size(); j++) {
-            options.add(missionCode, codeGroup[j].asInt());
-        }
-    }
-
-    input.close();
-    free(path);
-    return options;
-}
-
-}; // End of unnamed namespace part 3

@@ -23,12 +23,9 @@
 // Programmed by Michael K McCarty
 //
 
-#include <cassert>
-#include <fstream>
-#include <string>
-#include <stdexcept>
+// This file handles Downgrading and Rushing missions.
 
-#include <json/json.h>
+#include <stdexcept>
 
 #include "display/graphics.h"
 #include "display/surface.h"
@@ -48,8 +45,8 @@
 #include "state_utils.h"
 #include "gr.h"
 #include "pace.h"
+#include "prest.h"
 #include "filesystem.h"
-#include "radar.h"
 
 // Function Prototype
 
@@ -64,7 +61,6 @@ namespace   // Unnamed namespace part 1
 
 void DrawMissionEntry(char plr, int pad, const struct MissionType &mission);
 void DrawRush(char plr);
-Downgrader::Options LoadJsonDowngrades(std::string filename);
 void ResetRush(int mode, int pad);
 void SetLaunchDates(char plr);
 void SetRush(int mode, int pad);
@@ -77,6 +73,8 @@ void SetRush(int mode, int pad);
  *    and vice versa.
  * 2. Unmanned missions *cannot* be downgraded to manned missions.
  * 3. There *must not* be downgrading to, or from, a Probe Mission.
+ *    (Exception: a Lunar Probe Landing should be downgradable to a 
+ *     Lunar Flyby.)
  * 4. Mission hardware requirements *must not* be added.
  * 5. Mission hardware requirements *should not* be removed.
  * 6. Manned mission downgrades *should* be listed ahead of unmanned
@@ -94,17 +92,6 @@ void SetRush(int mode, int pad);
  * Attempts to replace a Joint mission with a single launch mission,
  * or vice versa, are not allowed and will be ignored.
  * Replacing an Unmanned launch with a Manned launch is also blocked.
- *
- * TODO: ClrMiss() can launch a Help menu to ask if the user wishes
- * to proceed with cancelling the mission. This is preferable, in
- * keeping with usual practice. However, handling the process is
- * messy:
- *  - If the user doesn't cancel, is the original mission approved
- *    or are they returned to the Mission Control loop?
- *  - If returned to the mission control loop, would other missions
- *    that were set to be downgraded changed or left in their original
- *    state? If the later, how would that be done?
- *  - Etc.
  *
  * TODO: Downgrade penalty system is currently disabled.
  * Add it with a configuration toggle.
@@ -145,8 +132,11 @@ void Downgrade(const char plr, const int pad,
                 " to Manned on pad %d", pad);
         return;
     } else if (mission.MissionCode == Mission_None) {
-        // Disable ClrMiss's Help menu
-        ClrMiss(plr, pad + MAX_LAUNCHPADS);
+        // TODO: Should launch a prompt before scrubbing a mission,
+        // but cancelling means this function cannot fulfill its
+        // mandate, and the decision of how to handle that must be
+        // dealt with at a higher level.
+        ScrubMission(plr, pad);
         return;
     }
 
@@ -221,7 +211,6 @@ void DrawMissionEntry(const char plr, const int pad,
         draw_string(0, 0, GetDurationParens(duration));
     }
 
-    fill_rectangle(191, 71 + pad * 58, 270, 78 + pad * 58, 3);
     display::graphics.setForegroundColor(9);
 
     // The prestige penalty to downgrading is currently disabled.
@@ -243,6 +232,13 @@ void DrawMissionEntry(const char plr, const int pad,
         draw_string(145, 33 + pad * 58, "ORIGINAL MISSION");
         // draw_string(193, 77 + pad * 58, "NO PENALTY");
     }
+
+    // draw_string(88, 77 + pad * 58, "REQUIREMENT PENALTIES: ");
+    fill_rectangle(215, 71 + pad * 58, 270, 78 + pad * 58, 3);
+    const int penalty = PrestMin(plr, Mis);
+    display::graphics.setForegroundColor(11);
+    draw_number(215, 77 + pad * 58, penalty);
+    draw_string(0, 0, "%");
 }
 
 
@@ -270,6 +266,9 @@ void DrawRush(char plr)
     for (int i = 0; i < 3; i++) {
         if (Data->P[plr].Mission[i].MissionCode &&
             Data->P[plr].Mission[i].part == 0) {
+
+            GetMisType(Data->P[plr].Mission[i].MissionCode);
+
             ShBox(0, 25 + i * 58, 80, 82 + i * 58 - 1);
             ShBox(83, 25 + i * 58, 319, 82 + i * 58 - 1);
 
@@ -293,13 +292,9 @@ void DrawRush(char plr)
             draw_heading(55, 5, "MISSION SCHEDULE", 0, -1);
 
             display::graphics.setForegroundColor(5);
-
-            GetMisType(Data->P[plr].Mission[i].MissionCode);
-
             draw_string(96, 48 + 58 * i, Mis.Abbr);
 
-            // Show duration level only on missions with a
-            // Duration step - Leon
+            // Show duration level only on missions with a Duration step -Leon
             if (IsDuration(Data->P[plr].Mission[i].MissionCode)) {
                 int duration = Data->P[plr].Mission[i].Duration;
                 draw_string(0, 0, GetDurationParens(duration));
@@ -322,77 +317,22 @@ void DrawRush(char plr)
                         &Mon[Data->P[plr].Mission[i].Month - 1][0]);
             draw_string(288, 72 + 58 * i,
                         &Mon[Data->P[plr].Mission[i].Month - 2][0]);
+
+            // Since the Downgrade penalty isn't being used, its
+            // screen space is commandeered to display the mission
+            // penalty.
+            const int penalty = PrestMin(plr, Mis);
+            display::graphics.setForegroundColor(1);
+            draw_string(88, 77 + i * 58, "REQUIREMENT PENALTIES:");
+            display::graphics.setForegroundColor(11);
+            draw_number(215, 77 + i * 58, penalty);
+            draw_string(0, 0, "%");
         } /* End if */
     }
 
     return;
 }
 
-
-/* Read the mission downgrade options from a file.
- *
- * The Json format is:
- * {
- *   "missions": [
- *     { "mission": <Code>, "downgrades": [<Codes>] },
- *     ...
- *   ]
- * }
- *
- * NOTE: I would prefer to put this in downgrader.h/cpp, but the
- *   pragma packing makes that a pain... -- rnyoakum
- *
- * \param filename  A Json-formatted data file.
- * \return  A collection of MissionType.MissionCode-indexed downgrade
- *          options.
- * \throws IOException  If filename is not a readable Json file.
- */
-Downgrader::Options LoadJsonDowngrades(std::string filename)
-{
-    char *path = locate_file(filename.c_str(), FT_DATA);
-
-    if (path == NULL) {
-        free(path);
-        throw IOException(std::string("Unable to open path to ") +
-                          filename);
-    }
-
-    std::ifstream input(path);
-    Json::Value doc;
-    Json::Reader reader;
-    bool success = reader.parse(input, doc);
-
-    if (! success) {
-        free(path);
-        throw IOException("Unable to parse JSON input stream");
-    }
-
-    assert(doc.isObject());
-    Json::Value &missionList = doc["missions"];
-    assert(missionList.isArray());
-
-    Downgrader::Options options;
-
-    for (int i = 0; i < missionList.size(); i++) {
-        Json::Value &missionEntry = missionList[i];
-        assert(missionEntry.isObject());
-
-        int missionCode = missionEntry.get("mission", -1).asInt();
-        assert(missionCode >= 0);
-        // assert(missionCode >= 0 && missionCode <= 61);
-
-        Json::Value &codeGroup = missionEntry["downgrades"];
-        assert(codeGroup.isArray());
-
-        for (int j = 0; j < codeGroup.size(); j++) {
-            options.add(missionCode, codeGroup[j].asInt());
-        }
-    }
-
-    input.close();
-    free(path);
-    return options;
-}
 
 }; // End of Unnamed namespace part 2
 
@@ -419,7 +359,7 @@ void Rush(char plr)
             Data->P[plr].Cash += 6;
         }
 
-        Data->P[plr].Mission[pad].Rushing = 0; // Clear Data
+        Data->P[plr].Mission[pad].Rushing = 0;  // Clear Data
     }
 
     SetLaunchDates(plr);
@@ -453,7 +393,7 @@ void Rush(char plr)
 
         if (mousebuttons > 0 || key > 0) {
             if (((y >= 32 && y <= 74 && x >= 280 && x <= 312 && mousebuttons > 0) || (key >= '1' && key <= '3'))
-                && pRush && Data->P[plr].Mission[0].MissionCode && Data->P[plr].Mission[0].part != 1) { /* L1: Row One */
+                && pRush && Data->P[plr].Mission[0].MissionCode && Data->P[plr].Mission[0].part != 1) {  /* L1: Row One */
                 // R1=oR1;
                 if (((y >= 49 && y <= 57 && mousebuttons > 0) || key == '2') && oR1 != 1 && fCsh < 3) {
                     Help("i117");
@@ -475,7 +415,7 @@ void Rush(char plr)
                     oR1 = R1;
                 }
             } else if (((x >= 280 && x <= 312 && y >= 90 && y <= 132 && mousebuttons > 0) || (key >= '4' && key <= '6'))
-                       && pRush && Data->P[plr].Mission[1].MissionCode && Data->P[plr].Mission[1].part != 1) { /* L2: Row One */
+                       && pRush && Data->P[plr].Mission[1].MissionCode && Data->P[plr].Mission[1].part != 1) {  /* L2: Row One */
                 // R2=oR2;
                 if (((y >= 107 && y <= 115 && mousebuttons > 0) || key == '5') && oR2 != 1 && fCsh < 3) {
                     Help("i117");
@@ -497,7 +437,7 @@ void Rush(char plr)
                     oR2 = R2;
                 }
             } else if (((x >= 280 && x <= 312 && y >= 148 && y <= 190 && mousebuttons > 0) || (key >= '7' && key <= '9'))
-                       && pRush && Data->P[plr].Mission[2].MissionCode && Data->P[plr].Mission[2].part != 1) { /* L3: Row One */
+                       && pRush && Data->P[plr].Mission[2].MissionCode && Data->P[plr].Mission[2].part != 1) {  /* L3: Row One */
                 // R3=oR3;
                 if (((y >= 165 && y <= 173 && mousebuttons > 0) || key == '8') && oR3 != 1 && fCsh < 3) {
                     Help("i117");
@@ -548,7 +488,7 @@ void Rush(char plr)
             for (int i = 0; i < 3; i++) {
                 if (x >= 91 && x <= 264 && y >= 41 + i * 59 && y <= 59 + i * 59 && mousebuttons > 0
                     && Data->P[plr].Mission[i].MissionCode
-                    && Data->P[plr].Mission[i].part != 1) { // Downgrade
+                    && Data->P[plr].Mission[i].part != 1) {  // Downgrade
 
                     InBox(91, 41 + i * 58, 264, 59 + i * 58);
 
@@ -559,7 +499,7 @@ void Rush(char plr)
                 }
             }
 
-            if ((x >= 245 && y >= 5 && x <= 314 && y <= 17 && mousebuttons > 0) || key == K_ENTER) { //  CONTINUE
+            if ((x >= 245 && y >= 5 && x <= 314 && y <= 17 && mousebuttons > 0) || key == K_ENTER) {  // CONTINUE
                 InBox(245, 5, 314, 17);
                 WaitForMouseUp();
 
@@ -645,7 +585,7 @@ void SetLaunchDates(const char plr)
     int missionCount = 0;
     bool joint = false;
 
-    // Currently, can only handles 3 missions.
+    // Currently, can only handle 3 missions.
     // assert(MAX_MISSIONS == 3);
 
     for (int i = 0; i < MAX_MISSIONS; i++) {
@@ -659,13 +599,13 @@ void SetLaunchDates(const char plr)
         }
     }
 
-    if (missionCount == 3) { // Three non joint missions
+    if (missionCount == 3) {  // Three non-joint missions
         Data->P[plr].Mission[0].Month = 2 + Data->Season * 6;
         Data->P[plr].Mission[1].Month = 3 + Data->Season * 6;
         Data->P[plr].Mission[2].Month = 4 + Data->Season * 6;
     }
 
-    if (missionCount == 2 && joint == false) { // Two non joint missions
+    if (missionCount == 2 && joint == false) {  // Two non-joint missions
         int start = 3;
 
         if (Data->P[plr].Mission[0].MissionCode) {
@@ -683,7 +623,7 @@ void SetLaunchDates(const char plr)
         }
     }
 
-    if (missionCount == 1 && joint == false) { // Single Mission Non joint
+    if (missionCount == 1 && joint == false) {  // Single Mission Non-joint
         if (Data->P[plr].Mission[0].MissionCode) {
             Data->P[plr].Mission[0].Month = 4 + Data->Season * 6;
         }
@@ -697,22 +637,22 @@ void SetLaunchDates(const char plr)
         }
     }
 
-    if (missionCount == 2 && joint == true) { // Two launches, one Joint;
-        if (Data->P[plr].Mission[1].part == 1) { // Joint first
+    if (missionCount == 2 && joint == true) {  // Two launches, one Joint;
+        if (Data->P[plr].Mission[1].part == 1) {  // Joint first
             Data->P[plr].Mission[0].Month = 3 + Data->Season * 6;
             Data->P[plr].Mission[1].Month = 3 + Data->Season * 6;
             Data->P[plr].Mission[2].Month = 5 + Data->Season * 6;
         }
 
-        if (Data->P[plr].Mission[2].part == 1) { // Joint second
+        if (Data->P[plr].Mission[2].part == 1) {  // Joint second
             Data->P[plr].Mission[0].Month = 3 + Data->Season * 6;
             Data->P[plr].Mission[1].Month = 5 + Data->Season * 6;
             Data->P[plr].Mission[2].Month = 5 + Data->Season * 6;
         }
     }
 
-    if (missionCount == 1 && joint == true) { //  Single Joint Launch
-        if (Data->P[plr].Mission[1].part == 1) { // found on pad 1+2
+    if (missionCount == 1 && joint == true) {  // Single Joint Launch
+        if (Data->P[plr].Mission[1].part == 1) {  // found on pad 1+2
             Data->P[plr].Mission[0].Month = 4 + Data->Season * 6;
             Data->P[plr].Mission[1].Month = 4 + Data->Season * 6;
         } else {   // found on pad 2+3

@@ -25,6 +25,8 @@
 /** \file aipur.c AI Purchasing Routines
  */
 
+// This file handles AI purchase and research of hardware, and 'naut recruitment
+
 #include "display/graphics.h"
 #include "display/palettized_surface.h"
 
@@ -52,11 +54,15 @@ char Skill(char plr, char type);
 void CheckAdv(char plr);
 
 
-
+/**
+ * Draws the menu for pulling up assorted summary statistics about the
+ * finished match.
+ *
+ * \param Win  the country of the winner (0 for USA, 1 for USSR).
+ */
 void DrawStatistics(char Win)
 {
     char AImg[7] = {8, 9, 10, 11, 13, 14, 0};
-    char Digit[2];
     int starty, qty, i;
     FILE *fin;
     helpText = "i145";
@@ -78,69 +84,35 @@ void DrawStatistics(char Win)
     display::graphics.setForegroundColor(6);
     draw_string(122, 78, "WINNING DIRECTOR: ");
     display::graphics.setForegroundColor(8);
-
-    if (Win == 0) {
-        draw_string(0, 0, &Data->P[Data->Def.Plr1].Name[0]);
-    } else {
-        draw_string(0, 0, &Data->P[Data->Def.Plr2].Name[0]);
-    }
+    draw_string(0, 0, &Data->P[Win].Name[0]);
 
     if (AI[Win]) {
-        draw_string(0, 0, "COMPUTER");
-        display::graphics.setForegroundColor(6);
-        draw_string(122, 86, "STRATEGY USED: ");
-        display::graphics.setForegroundColor(8);
-        sprintf(&Digit[0], "%d", Data->P[Win].AIStrategy[AI_STRATEGY]);
-        //draw_string(0, 0, &Digit[0]);
-        int strat = std::stoi(&Digit[0]);
-
-        if (strat == 1) {
-            if (Win == 0) {
-                draw_string(0, 0, "JUPITER");
-            } else {
-                draw_string(0, 0, "LK-700");
-            }
-        } else if (strat == 2) {
-            if (Win == 0) {
-                draw_string(0, 0, "APOLLO");
-            } else {
-                draw_string(0, 0, "SOYUZ");
-            }
-        } else if (strat == 3) {
-            if (Win == 0) {
-                draw_string(0, 0, "GEMINI");
-            } else {
-                draw_string(0, 0, "VOSKHOD");
-            }
-        } else {
-            draw_string(0, 0, "OTHER (");
-            draw_string(0, 0, &Digit[0]);
-            draw_string(0, 0, ")");
-        }
+        draw_string(0, 0, " (AI)");
     }
 
     display::graphics.setForegroundColor(6);
     draw_string(122, 125, "LOSING DIRECTOR: ");
     display::graphics.setForegroundColor(8);
-
-    if (Win == 0) {
-        draw_string(0, 0, &Data->P[Data->Def.Plr2].Name[0]);
-    } else {
-        draw_string(0, 0, &Data->P[Data->Def.Plr1].Name[0]);
-    }
+    draw_string(0, 0, &Data->P[other(Win)].Name[0]);
 
     if (AI[other(Win)]) {
-        draw_string(0, 0, "COMPUTER");
-        display::graphics.setForegroundColor(6);
-        draw_string(122, 86, "STRATEGY USED: ");
-        display::graphics.setForegroundColor(8);
-        sprintf(&Digit[0], "%d", Data->P[other(Win)].AIStrategy[AI_STRATEGY]);
-        //draw_string(0, 0, &Digit[0]);
-        int strat = std::stoi(&Digit[0]);
+        draw_string(0, 0, " (AI)");
+    }
 
-        if (strat == 1) {
-            if (Win == 0) {
-                draw_string(0, 0, "JUPITER");
+    // There's only one AI player, so there's only one place where the
+    // AI strategy is listed.
+    if (AI[Win] || AI[other(Win)]) {
+        display::graphics.setForegroundColor(6);
+        draw_string(122, 86, "AI STRATEGY: ");
+        display::graphics.setForegroundColor(8);
+
+        int ai_player = AI[Win] ? Win : other(Win);
+        int strat = Data->P[ai_player].AIStrategy[AI_STRATEGY];
+        draw_number(0, 0, strat);  // This displays the computer strategy: 1, 2, or 3
+        
+        /*if (strat == 1) {                     Note: this was done when we thought that AI_STRATEGY represents
+            if (Win == 0) {                           the AI's capsule choice, but instead it represents 
+                draw_string(0, 0, "JUPITER");         "More the path rather than the craft", per Michael
             } else {
                 draw_string(0, 0, "LK-700");
             }
@@ -158,9 +130,9 @@ void DrawStatistics(char Win)
             }
         } else {
             draw_string(0, 0, "OTHER (");
-            draw_string(0, 0, &Digit[0]);
+            draw_number(0, 0, strat);
             draw_string(0, 0, ")");
-        }
+        } */
     }
 
     qty = 6;
@@ -480,7 +452,25 @@ void AIRandomizeNauts()
 }
 
 
-/** Select the best crew for the mission
+/**
+ * Select the best astronauts from the next class for recruitment.
+ *
+ * How the AI handles female astronauts/cosmonauts is a configurable
+ * feature, depending on options.feat_female_nauts. Options are
+ *   0: Classic mode (event-driven)
+ *   1: Always for players, Game decides AI behavior
+ * Greater specificity may be available, but is not guaranteed. Under
+ * the current setup
+ *   2: AI requires news event
+ *   3: AI acts as if under news event
+ *   4: AI is gender-blind [default]
+ * Leon has suggested default behavior be based on AI astronaut
+ * difficulty.
+ *
+ * Also noteworthy is that AI nauts don't suffer skill loss upon
+ * selection. This is to skip the difficulty of managing them in
+ * Basic Training - from which they are automatically withdrawn -
+ * and therefore cannot benefit from.
  */
 void SelectBest(char plr, int pos)
 {
@@ -488,6 +478,16 @@ void SelectBest(char plr, int pos)
     FILE *fin;
     char tot, done;
     struct BuzzData *pData = &Data->P[plr];
+
+    // pData->FemaleAstronautsAllowed is the news event flag that
+    // allows & requires female astronauts.
+    // The configurable option should not affect its value.
+    bool femaleAstronautsAllowed =
+        pData->FemaleAstronautsAllowed == 1 ||
+        (options.feat_female_nauts > 0 && options.feat_female_nauts != 2);
+    bool femaleAstronautsRequired =
+        pData->FemaleAstronautsAllowed == 1 ||
+        options.feat_female_nauts == 3;
 
     for (i = 0; i < 25; i++) {
         AIsel[i] = 0;
@@ -506,36 +506,21 @@ void SelectBest(char plr, int pos)
 
     switch (pData->AstroLevel) {
     case 0:
-        MaxMen = 10;
+        MaxMen = femaleAstronautsAllowed ? 13 : 10;
         AIMaxSel = ASTRO_POOL_LVL1;
         Index = 0;
-
-        if (pData->FemaleAstronautsAllowed == 1) {
-            MaxMen += 3;
-        }
-
         break;
 
     case 1:
-        MaxMen = 17;
+        MaxMen = femaleAstronautsAllowed ? 20 : 17;
         AIMaxSel = ASTRO_POOL_LVL2;
         Index = 14;
-
-        if (pData->FemaleAstronautsAllowed == 1) {
-            MaxMen += 3;
-        }
-
         break;
 
     case 2:
-        MaxMen = 19;
+        MaxMen = femaleAstronautsAllowed ? 22 : 19;
         AIMaxSel = ASTRO_POOL_LVL3;
         Index = 35;
-
-        if (pData->FemaleAstronautsAllowed == 1) {
-            MaxMen += 3;
-        }
-
         break;
 
     case 3:
@@ -551,6 +536,7 @@ void SelectBest(char plr, int pos)
         break;
 
     default:
+        // TODO: Log an error...
         MaxMen = 0;
         AIMaxSel = 0;
         Index = 0;
@@ -558,9 +544,10 @@ void SelectBest(char plr, int pos)
     }
 
     now = Index;
-
     count = 0;
 
+    // TODO: This is a crude way of ordering all the candidates.
+    // It could be replaced with a superior method.
     for (i = 16; i > 0; i--) {
         done = 0;
 
@@ -570,7 +557,7 @@ void SelectBest(char plr, int pos)
 
                 if (i == tot) {
                     AIsel[count++] = j;
-                } else if (pData->FemaleAstronautsAllowed == 1 && Men[j].Sex == 1) {
+                } else if (femaleAstronautsRequired && Men[j].Sex == 1) {
                     AIsel[count++] = j;
                 }
             }
@@ -980,7 +967,7 @@ int GenPur(char plr, int hardware_index, int unit_index)
 {
     bool newProgramStarted = false;
     bool itemPurchased = false;
-    int n1, n2, n3, n4, n5, n6, n7; // scratch variables for base saftey value init
+    int n1, n2, n3, n4, n5, n6, n7; // scratch variables for base safety value init
 
     struct BuzzData *pData = &Data->P[plr];
 

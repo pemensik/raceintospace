@@ -23,6 +23,8 @@
 // Programmed by Michael K McCarty
 //
 
+// This page handles the Launch Pad screen.
+
 #include <cassert>
 
 #include "display/graphics.h"
@@ -70,7 +72,7 @@ void PadDraw(char plr, char pad)
     ShBox(56, 64, 110, 74);
     InBox(57, 65, 109, 73);
     ShBox(4, 180, 162, 195);
-    InBox(6, 182, 160, 193); //sched. duration
+    InBox(6, 182, 160, 193);  //sched. duration
     InBox(6, 99, 160, 178);
     display::graphics.setForegroundColor(9);
     draw_string(18, 190, "SCHEDULED DURATION: ");
@@ -222,7 +224,7 @@ void PadDraw(char plr, char pad)
     draw_string(13, 107, "PRIMARY CREW  ");
 
     if (j >= 0) {
-        display::graphics.setForegroundColor(11); // Now display the crew number, for player's easy reference - Leon
+        display::graphics.setForegroundColor(11);  // Now display the crew number, for player's easy reference -Leon
 
         if (j == 0) {
             draw_string(0, 0, "(CREW I)");
@@ -257,12 +259,12 @@ void PadDraw(char plr, char pad)
         }
 
         for (k = 0; k < Data->P[plr].CrewCount[i][j]; k++) {
-            // Draw a morale box for each crew member - Leon
+            // Draw a morale box for each crew member -Leon
             display::graphics.setForegroundColor(1);
-            fill_rectangle(13, 110 + 7 * k, 20, 110 + 7 * k, 2); // Top
-            fill_rectangle(13, 110 + 7 * k, 13, 116 + 7 * k, 2); // Left
-            fill_rectangle(13, 116 + 7 * k, 20, 116 + 7 * k, 4); // Bottom
-            fill_rectangle(21, 110 + 7 * k, 21, 116 + 7 * k, 4); // Right
+            fill_rectangle(13, 110 + 7 * k, 20, 110 + 7 * k, 2);  // Top
+            fill_rectangle(13, 110 + 7 * k, 13, 116 + 7 * k, 2);  // Left
+            fill_rectangle(13, 116 + 7 * k, 20, 116 + 7 * k, 4);  // Bottom
+            fill_rectangle(21, 110 + 7 * k, 21, 116 + 7 * k, 4);  // Right
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].Mood >= 65) {
                 fill_rectangle(14, 111 + 7 * k, 20, 115 + 7 * k, 16);
@@ -291,15 +293,14 @@ void PadDraw(char plr, char pad)
             }
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].RetirementDelay > 0) {
-                display::graphics.setForegroundColor(0);    // Show anyone who's announced retirement in black
+                display::graphics.setForegroundColor(0);    // Show men who've announced retirement in black
             }
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].Sex == 1 && Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].RetirementDelay > 0) {
                 display::graphics.setForegroundColor(7);
             }
 
-            // Show name in purple if 'naut is female AND has announced retirement
-            draw_string(25, 115 + 7 * k, &Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].Name[0]);
+            draw_string(25, 115 + 7 * k, &Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].Name[0]);   // Show women who've announced retirement in purple
             missions = Data->P[plr].Pool[Data->P[plr].Crew[i][j][k] - 1].Missions;
 
             if (missions > 0) {
@@ -318,7 +319,7 @@ void PadDraw(char plr, char pad)
     draw_string(13, 145, "BACKUP CREW  ");
 
     if (l >= 0) {
-        display::graphics.setForegroundColor(11); // Now display the crew number, for player's easy reference - Leon
+        display::graphics.setForegroundColor(11);  // Now display the crew number, for player's easy reference -Leon
 
         if (l == 0) {
             draw_string(0, 0, "(CREW I)");
@@ -353,12 +354,12 @@ void PadDraw(char plr, char pad)
         }
 
         for (k = 0; k < Data->P[plr].CrewCount[i][l]; k++) {
-            // Draw a morale box for each crew member - Leon
+            // Draw a morale box for each crew member -Leon
             display::graphics.setForegroundColor(1);
-            fill_rectangle(13, 148 + 7 * k, 20, 148 + 7 * k, 2); // Top
-            fill_rectangle(13, 148 + 7 * k, 13, 154 + 7 * k, 2); // Left
-            fill_rectangle(13, 154 + 7 * k, 20, 154 + 7 * k, 4); // Bottom
-            fill_rectangle(21, 148 + 7 * k, 21, 154 + 7 * k, 4); // Right
+            fill_rectangle(13, 148 + 7 * k, 20, 148 + 7 * k, 2);  // Top
+            fill_rectangle(13, 148 + 7 * k, 13, 154 + 7 * k, 2);  // Left
+            fill_rectangle(13, 154 + 7 * k, 20, 154 + 7 * k, 4);  // Bottom
+            fill_rectangle(21, 148 + 7 * k, 21, 154 + 7 * k, 4);  // Right
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].Mood >= 65) {
                 fill_rectangle(14, 149 + 7 * k, 20, 153 + 7 * k, 16);
@@ -387,15 +388,14 @@ void PadDraw(char plr, char pad)
             }
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].RetirementDelay > 0) {
-                display::graphics.setForegroundColor(0);    // But show anyone who's announced retirement in black
+                display::graphics.setForegroundColor(0);    // Show men who've announced retirement in black
             }
 
             if (Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].Sex == 1 && Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].RetirementDelay > 0) {
                 display::graphics.setForegroundColor(7);
             }
 
-            // Show name in purple if 'naut is female AND has announced retirement
-            draw_string(25, 153 + 7 * k, &Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].Name[0]);
+            draw_string(25, 153 + 7 * k, &Data->P[plr].Pool[Data->P[plr].Crew[i][l][k] - 1].Name[0]);   // Show women who've announced retirement in purple
         }
 
         if (j == -1) {
@@ -408,113 +408,6 @@ void PadDraw(char plr, char pad)
                 Data->P[plr].Mission[pad].Patch);
 
     FadeIn(2, 10, 0, 0);
-
-    return;
-}
-
-
-/**
- * Scrubs a mission assigned for the current turn.
- *
- * Clears all mission data and unassigns the crew.
- *
- * \param plr  The player index (0 for USA, 1 for USSR).
- * \param pad  The launch pad index, or the pad + 3 for compatibility
- *             with News to bypass the popup alert.
- */
-void ClrMiss(char plr, char pad)
-{
-    char temp = 0;
-    char padd = pad % 3;
-
-    // If a Joint mission, sets padd to the launch pad of the first
-    // part. Displays an appropriate popup alert asking for confirmation
-    // before cancelling the mission.
-    if (Data->P[plr].Mission[padd].Joint == 0) {
-        if (!AI[plr] && pad < 3) {
-            temp = Help("i111");
-        }
-    } else {
-        switch (padd) {
-        case 0:
-            if (!AI[plr] && pad < 3) {
-                temp = Help("i110");
-            }
-
-            break;
-
-        case 1:
-            if (Data->P[plr].Mission[1].Joint == 1) {
-                if (Data->P[plr].Mission[0].Joint == 1) {
-                    if (!AI[plr] && pad < 3) {
-                        temp = Help("i112");
-                    }
-
-                    padd = 0;
-                } else {
-                    if (!AI[plr] && pad < 3) {
-                        temp = Help("i110");
-                    }
-                }
-            }
-
-            break;
-
-        case 2:
-            padd = 1;
-
-            if (!AI[plr] && pad < 3) {
-                temp = Help("i112");
-            }
-
-            break;
-
-        default:
-            temp = 0;
-            break;
-        }
-    }
-
-    if (! AI[plr] && temp == -1) {
-        return;
-    }
-
-    // TODO: This should unassign hardware that has been reserved
-    // for this launch.
-    Data->P[plr].Mission[padd].Hard[Mission_PrimaryBooster] = 0;
-
-    ClearMissionCrew(plr, padd, CREW_ALL);
-
-    if (Data->P[plr].Mission[padd].Joint == 1) {
-        ClearMissionCrew(plr, padd + 1, CREW_ALL);
-
-        Data->P[plr].Mission[padd + 1].part = 0;
-        Data->P[plr].Mission[padd + 1].Prog = 0;
-        Data->P[plr].Mission[padd + 1].Duration = 0;
-        Data->P[plr].Mission[padd + 1].Joint = 0;
-        Data->P[plr].Mission[padd + 1].Men = 0;
-        Data->P[plr].Mission[padd + 1].MissionCode = Mission_None;
-    }
-
-    Data->P[plr].Mission[padd].Prog = 0;
-    Data->P[plr].Mission[padd].Duration = 0;
-    Data->P[plr].Mission[padd].Men = 0;
-    Data->P[plr].Mission[padd].Joint = 0;
-    Data->P[plr].Mission[padd].MissionCode = Mission_None;
-
-    // Huh? These shouldn't ever trigger, because the Joint status
-    // for each was just set... -- rnyoakum
-    // if (Data->P[plr].Mission[padd].Joint == 1 &&
-    //     Data->P[plr].Mission[padd].part == 0) {
-    //     memset(&Data->P[plr].Mission[padd + 1], 0x00,
-    //            sizeof(struct MissionType));
-    // }
-
-    // if (Data->P[plr].Mission[padd + 1].Joint == 1 &&
-    //     Data->P[plr].Mission[padd + 1].part == 1) {
-    //     memset(&Data->P[plr].Mission[padd + 1], 0x00,
-    //            sizeof(struct MissionType));
-    // }
 
     return;
 }
@@ -560,9 +453,8 @@ void ShowPad(char plr, char pad)
     PadDraw(plr, pad);
     temp = CheckCrewOK(plr, pad);
 
-    if (temp == 1) { //found mission no crews
-
-        ClrMiss(plr, pad + 3);
+    if (temp == 1) {  //found mission no crews
+        ScrubMission(plr, pad);
         return;
     }
 
@@ -580,7 +472,11 @@ void ShowPad(char plr, char pad)
             InBox(169, 181, 314, 193);
             key = 0;
             WaitForMouseUp();
-            ClrMiss(plr, pad);
+
+            if (ScrubMissionQuery(plr, pad)) {
+                ScrubMission(plr, pad);
+            }
+
             OutBox(169, 181, 314, 193);
             key = 0;
 

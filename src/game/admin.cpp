@@ -27,6 +27,9 @@
  *
  */
 
+// This file handles the Administration building and some of its subsections: Future Missions, Time Capsule (save/load game).
+// It also includes some code for Modem and PBEM.
+
 #include <assert.h>
 
 #include "display/graphics.h"
@@ -77,7 +80,7 @@ char RequestX(char *s, char md);
 
 /* Control loop for the Administration Office menu.
  *
- * This provides acccess to the Budget Office, Hardware Purchase,
+ * This provides access to the Budget Office, Hardware Purchase,
  * Future Missions, Astronaut Recruiting, Preferences, and Time Capsule.
  *
  * \param plr  The current player.
@@ -312,7 +315,7 @@ next:
 }
 
 
-/* Draws the File save/load interface and manages the gui.
+/* Draws the File save/load interface and manages the GUI.
  *
  * To determine which menu options are accessible, this uses the
  * global MAIL and Option variables. For normal games, MAIL & Option
@@ -659,7 +662,7 @@ void FileAccess(char mode)
 
                             Option = MPrefs(1);
 
-                            // klugge
+                            // kludge
                             if (Option == 0 || Option == 2) {
                                 Option = 0;
                             } else if (Option == 1 || Option == 3) {
@@ -789,7 +792,7 @@ void FileAccess(char mode)
                 fwrite(SaveHdr, sizeof(SaveFileHdr), 1, fin);
 
                 //----------------------------------
-                //Specs: Special Modem Save Klugge |
+                //Specs: Special Modem Save Kludge |
                 //----------------------------------
                 if (Option != -1) {
                     if (Option == 0) {
@@ -1003,7 +1006,7 @@ void FileAccess(char mode)
 
             // perform Up Button
             key = 0;
-        } else if (key == 0x4900) { // Page Up
+        } else if (key == K_PGUP) { // Page Up
 
             if (now > 0) {
                 fill_rectangle(38, 49, 190, 127, 0);
@@ -1022,7 +1025,7 @@ void FileAccess(char mode)
             // perform Up Button
             key = 0;
 
-        } else if (key == 0x5100) { // Page Down
+        } else if (key == K_PGDN) { // Page Down
 
             if (now < (tFiles - 9)) {
                 now += 9;
@@ -1710,8 +1713,8 @@ char RequestX(char *s, char md)
  * In normal usage, the variable Data (which contains the game state)
  * is copied into the interimData end-of-turn buffer at the beginning of
  * each player's turn. In this manner, loading the save returns the
- * the player to the beginning of their turn (on which the save
- * was created). The interimData buffer is also updated when the player
+ * player to the beginning of their turn (on which the save was
+ * created). The interimData buffer is also updated when the player
  * quits the game, updating the Autosave to their current state so the
  * player may resume their game where they left off.
  *

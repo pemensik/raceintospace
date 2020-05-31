@@ -23,6 +23,8 @@
 // Programmed by Michael K McCarty
 //
 
+// This file handles original (main) game Preferences
+
 #include "display/graphics.h"
 #include "display/surface.h"
 #include "display/image.h"
@@ -78,7 +80,7 @@ void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx)
     ShBox(230, 24, 319, 199);
 
     if (where == 2) {
-        where = mode = 1;    //modem klugge
+        where = mode = 1;    //modem kludge
     } else if (where == 3) {
         where = mode = 2;    //play-by-mail
     }
@@ -98,6 +100,7 @@ void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx)
         //BinT(8,54,0);BinT(238,54,0);  // Old way with buttons
         BinT(8, 54, 1);
         BinT(238, 54, 1);  // No select Buttons
+        fill_rectangle(250, 75, 250, 84, 4);
         fill_rectangle(237, 35, 312, 41, 0);
         fill_rectangle(7, 35, 82, 41, 0);
     } else {
@@ -267,11 +270,11 @@ void PLevels(char side, char wh, DisplayContext &dctx)
 {
 
     if (side == 0) {
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 11, 19,  9,  55);
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 59, 29, 21,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 12, 19,  9,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 60, 29, 21,  55);
     } else {
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 11, 19, 239,  55);
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 60, 29, 250,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72,     0, 11, 19, 240,  55);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 0 + wh * 72 + 11,  0, 60, 29, 251,  55);
     }
 
     return;
@@ -281,9 +284,9 @@ void CLevels(char side, char wh, DisplayContext &dctx)
 {
 
     if (side == 0) {
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 8, 6, 9, 78);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 9, 7, 9, 78);
     } else {
-        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 8, 6, 239, 78);
+        display::graphics.legacyScreen()->draw(dctx.prefs_image, 144, wh * 7, 9, 7, 239, 78);
     }
 
     return;
@@ -296,7 +299,8 @@ void CLevels(char side, char wh, DisplayContext &dctx)
  * During gameplay, the ability to change certain settings is disabled.
  *
  * Pref Levels:
- * Player Select:  0 = USA
+ * Player Select:
+ *     0 = USA
  *     1 = USSR
  *     2 = USA AI
  *     3 = USSR AI
@@ -351,8 +355,8 @@ void Prefs(int where)
             Data->Def.Plr1 = 0;
             hum1 = 0, hum2 = 1;
             Data->Def.Lev1 = Data->Def.Ast1 = Data->Def.Ast2 = 0;
-            Data->Def.Lev2 = 2; //start computer level 3
-            Data->Def.Input = 2; // Historical Model / Historical Roster
+            Data->Def.Lev2 = 2;  //start computer level 3
+            Data->Def.Input = 2;  // Historical Model / Historical Roster
             Data->Def.Sound = Data->Def.Music = 1;
             MuteChannel(AV_ALL_CHANNELS, 0);
         }
@@ -379,7 +383,7 @@ void Prefs(int where)
         key = 0;
         GetMouse();
 
-        if (mousebuttons > 0 || key > 0) { /* Game Play */
+        if (mousebuttons > 0 || key > 0) {  /* Gameplay */
             if (((x >= 245 && y >= 5 && x <= 314 && y <= 17) || key == K_ENTER) && !(hum1 == 1 && hum2 == 1)) {
                 InBox(245, 5, 314, 17);
                 WaitForMouseUp();
@@ -398,7 +402,7 @@ void Prefs(int where)
                     if (options.feat_eq_new_name && hum2 != 1) {
                         SetEquipName(1);
                     }
-                } //Change Name, if basic mode and for human players
+                } // Change Name, if basic mode and for human players
 
                 if (Data->Def.Plr1 != Data->Def.Plr2) {
                     if (Data->Def.Plr1 == 1) {
@@ -493,7 +497,7 @@ void Prefs(int where)
             } else if ((x >= 146 && y >= 30 && x <= 219 && y <= 61 && mousebuttons > 0) || key == 'E') {
                 // Edit astronauts has been ripped out
 
-            } else if (((x >= 96 && y >= 114 && x <= 223 && y <= 194 && mousebuttons > 0) || key == K_SPACE) && (where == 3 || where == 0)) { // Hist
+            } else if (((x >= 96 && y >= 114 && x <= 223 && y <= 194 && mousebuttons > 0) || key == K_SPACE) && (where == 3 || where == 0)) {  // Hist
                 char maxHModels;
                 maxHModels = options.feat_random_eq > 0 ? 5 : 3;
                 WaitForMouseUp();

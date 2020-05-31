@@ -23,6 +23,8 @@
 // Programmed by Michael K McCarty
 //
 
+// This file handles Mission Control during missions
+
 #include "display/graphics.h"
 #include "display/surface.h"
 #include "display/palettized_surface.h"
@@ -35,8 +37,8 @@
 #include "newmis.h"
 #include "news_suq.h"
 #include "prest.h"
-#include "radar.h"
 #include "records.h"
+#include "state_utils.h"
 #include "game_main.h"
 #include "mis_c.h"
 #include "sdlhelper.h"
@@ -138,8 +140,8 @@ int Launch(char plr, char mis)
 
     temp = CheckCrewOK(plr, mis);
 
-    if (temp == 1) { //found mission no crews
-        ClrMiss(plr, mis - Data->P[plr].Mission[mis].part);
+    if (temp == 1) { // found mission no crews
+        ScrubMission(plr, mis - Data->P[plr].Mission[mis].part);
     }
 
     if (!AI[plr] && Data->P[plr].Mission[mis].MissionCode) {
@@ -239,7 +241,7 @@ int Launch(char plr, char mis)
 
     /////////////////////////////////////////////////
     // Fix for BARIS CD-ROM Planetary Steps (Step W)
-    // E=moon ; M= mars ;S = saturn; V=venus; J= jupiter  R= Mercury
+    // E=Moon; M= Mars; S = Saturn; V=Venus; J= Jupiter; R= Mercury
     // Must be at .Name[2]
     //
     // Search for Step 'W' on planetary steps
@@ -262,12 +264,12 @@ int Launch(char plr, char mis)
 //  if (mcode>15 && NOCOPRO && !AI[plr]) MisPrt();
 
     // Exit missions early
-    /** \todo The "early" missions should be defined in a file */
-    /* 1 = Orbital sattelite
-     * 7 = lunar flyby
-     * 8 = lunar probe landing
-     * 9 = venus flyby
-     * 11 = mercury flyby
+    /** \todo The *early* missions should be defined in a file */
+    /* 1 = Orbital satellite
+     * 7 = Lunar flyby
+     * 8 = Lunar probe landing
+     * 9 = Venus flyby
+     * 11 = Mercury flyby
      */
     fEarly = (!Mis.Days && !(mcode == Mission_Orbital_Satellite ||
                              mcode == Mission_LunarFlyby ||
@@ -286,7 +288,7 @@ int Launch(char plr, char mis)
     // distinct MisDur function to add duration penalties results in
     // a double penalty problem. I believe this to be the result of
     // old code, where skipped prestige steps (MisSkip) were applied
-    // separately of duration penalties (MisDur). However, at some
+    // separately from duration penalties (MisDur). However, at some
     // point the method of computing prestige penalties, PrestMin(),
     // got used for both. However, the history of this lies back beyond
     // the First Commit -- rnyoakum
@@ -338,17 +340,17 @@ int Launch(char plr, char mis)
 //   if (!AI[plr]) {PreLoadMusic(M_ELEPHANT); PlayMusic(0);}
 
     if ((Data->Def.Lev1 == 0 && Data->Def.Lev2 == 2) || (Data->Def.Lev2 == 0 && Data->Def.Lev1 == 2)) {
-        xMODE |= PUSSY;    //set easy flag
+        xMODE |= EASYMODE;    // set easy flag
     }
 
     if (AI[plr]) {
-        xMODE &= ~xMODE_PUSSY;    // map out computer from really easy level
+        xMODE &= ~xMODE_EASYMODE;    // map out computer from really easy level
     }
 
 
     MisCheck(plr, mis); // Mission Resolution
 
-    xMODE &= ~xMODE_PUSSY;
+    xMODE &= ~xMODE_EASYMODE;
 
 //   if (!AI[plr]) KillMusic();
 
@@ -363,7 +365,7 @@ int Launch(char plr, char mis)
     Data->P[plr].Prestige += total;
     MissionSetDown(plr, mis);
     MissionPast(plr, mis, total);
-    // Update the Astro's
+    // Update the Astros
 
     for (i = 0; i < 1 + JOINT; i++) {
         /* XXX: was MANNED[i]+1, but why? */

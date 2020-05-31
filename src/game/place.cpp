@@ -16,6 +16,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+// This file shows the Mission Review (the summary you see at the end of a mission).
+
 #include <assert.h>
 #include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
@@ -137,7 +139,7 @@ int MainMenuChoice()
  * \return  the index of the selected menu option, [0, qty).
  * \throws runtime_error  if Filesystem cannot read the icon images.
  */
-int BChoice(char plr, char qty, char *Name, char *Imx) // Name[][22]
+int BChoice(char plr, char qty, char *Name, char *Imx)  // Name[][22]
 {
     int i, j, starty = 100;
     char filename[128];
@@ -224,7 +226,7 @@ void PatchMe(char plr, int x, int y, char prog, char poff)
 
     boost::shared_ptr<display::PalettizedSurface> patch(
         Filesystem::readImage(filename));
-    patch->exportPalette(32, 32 + (32 - 1)); // [32, 64) color palette
+    patch->exportPalette(32, 32 + (32 - 1));  // [32, 64) color palette
     display::graphics.screen()->draw(patch, x, y);
 }
 
@@ -252,7 +254,7 @@ void AstFaces(char plr, int x, int y, char face)
 
     boost::shared_ptr<display::PalettizedSurface> icon(
         Filesystem::readImage(filename));
-    icon->exportPalette(64, 64 + 31); // Palette space [64, 96)
+    icon->exportPalette(64, 64 + 31);  // Palette space [64, 96)
 
     sprintf(filename,
             "images/faces.but.%d.png",
@@ -288,7 +290,7 @@ void AstFaces(char plr, int x, int y, char face)
  *   7: ? Earth
  *
  * An icon of a hardware program may be displayed. For a non-Earth
- * planet, an interstellar probe will display if specified. Otherwise,
+ * planet, an interplanetary probe will display if specified. Otherwise,
  * the specified program is always displayed.
  *   1: Mercury/Vostok   2: Gemini/Voskhod   3: Apollo/Soyuz
  *   4: XMS-2/Lapot      5: Jupiter/LK-700   6: Explorer/Sputnik
@@ -477,24 +479,24 @@ int Help(const char *FName)
     fsize = 1;
 
     while (line < fsize) {
-        if (Help[i] == 0x3B) while (Help[i++] != 0x0a); // Remove Comments
-        else if (Help[i] == 0x25) { // Percent for line qty
+        if (Help[i] == 0x3B) while (Help[i++] != 0x0a);  // Remove Comments
+        else if (Help[i] == 0x25) {  // Percent for line qty
             i++;
             fsize = 10 * (Help[i] - 0x30) + (Help[i + 1] - 0x30) + 1;
             bot = fsize;
 
             NTxt = (char *)xmalloc((unsigned int)(42 * fsize));
             memset(NTxt, 0x00, (unsigned int)(42 * fsize));
-            j = line * 42; // should be 0
+            j = line * 42;   // should be 0
             mode = Help[i + 3] - 0x30;
             i += 6;
-        } else if (Help[i] == 0x2e) { // Period
+        } else if (Help[i] == 0x2e) {  // Period
             i++;
             assert(NTxt != NULL);
             NTxt[j++] = (char) 0xcc;
             NTxt[j++] = (Help[i] - 0x30) * 100 + (Help[i + 1] - 0x30) * 10 + (Help[i + 2] - 0x30);
             i += 5;
-        } else { // Text of Line
+        } else {   // Text of Line
             assert(NTxt != NULL);
 
             while (Help[i] != 0x0d) {
@@ -581,7 +583,7 @@ int Help(const char *FName)
             DispHelp(plc, bot, &NTxt[0]);
             OutBox(266, 50, 277, 87);
             key = 0;
-        }  // Up
+        }   // Up
 
         if ((plc + 11) < bot && ((x >= 266 && y > 89 && x <= 277 && y <= 126 && mousebuttons > 0) || (key >> 8) == 80)) {
             InBox(266, 89, 277, 126);
@@ -590,7 +592,7 @@ int Help(const char *FName)
             DispHelp(plc, bot, &NTxt[0]);
             OutBox(266, 89, 277, 126);
             key = 0;
-        }  // Down
+        }   // Down
 
     }
 
@@ -664,7 +666,7 @@ void writePrestigeFirst(char index)   ///index==plr
     }
 
     for (i = 0; i < 28; i++) {
-        //Prestige Seconds
+        // Prestige Seconds
         if (w < 6 && Data->Prestige[i].mPlace == index && Data->PD[index][i] == 0) {
             if (draw == 0) {
                 ShBox(6, 170, 314, 197);
@@ -735,7 +737,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
         InBox(245, 5, 314, 17);
     }
 
-    ShBox(6, 30, 209, 168); // Left Side
+    ShBox(6, 30, 209, 168);  // Left Side
     fill_rectangle(10, 34, 205, 44, 9);
     InBox(9, 33, 206, 45);
     fill_rectangle(10, 49, 205, 119, 7);
@@ -805,8 +807,8 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
         }
     }
 
-    fill_rectangle(210, 30, 211, 168, 0); // Clear any leftover stuff
-    ShBox(211, 30, 313, 168); // Right Side
+    fill_rectangle(210, 30, 211, 168, 0);  // Clear any leftover stuff
+    ShBox(211, 30, 313, 168);  // Right Side
     fill_rectangle(215, 34, 309, 44, 9);
     InBox(214, 33, 310, 45);
     display::graphics.setForegroundColor(11);
@@ -849,7 +851,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
                 display::graphics.setForegroundColor(11);
             }
 
-            let = 1; // Men on Part 1
+            let = 1;    // Men on Part 1
         } else {
             let = 0;    // Men not on Part 1
         }
@@ -930,7 +932,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
             if (x == 0 && y == 0) {
                 FILE *tin;
 
-                tin = sOpen("REPL.TMP", "wb", 1); // Create temp image file
+                tin = sOpen("REPL.TMP", "wb", 1);  // Create temp image file
                 {
                     display::AutoPal p(display::graphics.legacyScreen());
                     fwrite(p.pal, 768, 1, tin);
@@ -967,7 +969,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
                 }
 
                 FadeOut(2, 10, 0, 0);
-                tin = sOpen("REPL.TMP", "rb", 1); // replad temp image file
+                tin = sOpen("REPL.TMP", "rb", 1);  // replad temp image file
                 {
                     display::AutoPal p(display::graphics.legacyScreen());
                     fread(p.pal, 768, 1, tin);
@@ -979,7 +981,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
                 remove_savedat("REPL.TMP");
 
             } else {
-                //Specs: Planetary Mission Klugge
+                //Specs: Planetary Mission Kludge
                 if (Data->P[plr].History[index].MissionCode == Mission_MarsFlyby ||
                     Data->P[plr].History[index].MissionCode == Mission_JupiterFlyby ||
                     Data->P[plr].History[index].MissionCode == Mission_SaturnFlyby) {
@@ -1017,9 +1019,9 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
             fill_rectangle(212, 119, 312, 127, 3);
             key = 0;
 
-        } // if
+        }  // if
 
-    } // while
+    }  // while
 
     display::graphics.videoRect().w = 0;
 
@@ -1027,5 +1029,34 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
 
 }
 
+
+/**
+ * Prompts if the specified mission should be scrubbed.
+ *
+ * Chooses the correct Scrub Mission prompt from the help files
+ * and launches it for human players.
+ *
+ * \param plr  The player index (0 for USA, 1 for USSR)
+ * \param pad  The mission to scrub (pad 0, 1, or 2)
+ * \return  false to cancel, true to continue
+ */
+bool ScrubMissionQuery(const char plr, const int pad)
+{
+    if (AI[plr]) {
+        return true;
+    }
+
+    // Different Help prompts are used under different circumstances
+    // "i110" - first pad of joint mission
+    // "i111" - non-joint mission
+    // "i112" - second pad of joint mission
+    if (Data->P[plr].Mission[pad].Joint == 0) {
+        return Help("i111") >= 0;
+    } else if (Data->P[plr].Mission[pad].part == 0) {
+        return Help("i110") >= 0;
+    } else {
+        return Help("i112") >= 0;
+    }
+}
 
 // EOF

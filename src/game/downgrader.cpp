@@ -1,9 +1,27 @@
-/* TODO: Copyright
+/* Copyright (C) 2020 Ryan Yoakum
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <cassert>
+// This file handles mission downgrades.
 
-#include "downgrader.h" // Moved down because it includes Buzz_inc.h
+#include "downgrader.h"
+
+#include <cassert>
+#include <fstream>
+#include <json/json.h>
 
 #include "Buzz_inc.h"
 #include "ioexception.h"
@@ -120,7 +138,7 @@ struct MissionType Downgrader::current() const {
  * After this method exhausts all known downgrades for the mission,
  * it restarts with the original mission.
  *
- * When this method returns a unmanned alternative for a manned mission,
+ * When this method returns an unmanned alternative for a manned mission,
  * it strips the crew information from the return value. Because it only
  * generates alternate missions, it does not update the crew's status.
  *
@@ -130,6 +148,13 @@ struct MissionType Downgrader::current() const {
  *  - A non-duration mission cannot downgrade to a duration mission.
  *  - An unmanned mission cannot become a manned mission.
  *  - Probes cannot downgrade, or be the result of downgrading.
+      (Exception: I've allowed the Lunar Probe Landing to be downgraded to 
+       a Lunar Flyby, on the logic that any probe capable of landing should 
+       be able to do a flyby.  The idea is that if a player has flybys 
+       stubbornly failing and finds themselves with the Lunar Probe Landing 
+       in the VAB, it should be an option to fly the landing probe as a 
+       flyby to avoid a milestone penalty - rather than having to scrub it 
+       and delay your flyby by a turn. -Leon)
  *
  * \return  a new instance of the next downgrade option in the cycle.
  */
@@ -181,4 +206,71 @@ struct MissionType Downgrader::next()
     }
 
     return mCurrent;
+}
+
+//----------------------------------------------------------------------
+// End of Downgrader class methods
+//----------------------------------------------------------------------
+
+
+/* Read the mission downgrade options from a file.
+ *
+ * The Json format is:
+ * {
+ *   "missions": [
+ *     { "mission": <Code>, "downgrades": [<Codes>] },
+ *     ...
+ *   ]
+ * }
+ *
+ * \param filename  A Json-formatted data file.
+ * \return  A collection of MissionType.MissionCode-indexed downgrade
+ *          options.
+ * \throws IOException  If filename is not a readable Json file.
+ */
+Downgrader::Options LoadJsonDowngrades(std::string filename)
+{
+    char *path = locate_file(filename.c_str(), FT_DATA);
+
+    if (path == NULL) {
+        free(path);
+        throw IOException(std::string("Unable to open path to ") +
+                          filename);
+    }
+
+    std::ifstream input(path);
+    Json::Value doc;
+    Json::Reader reader;
+    bool success = reader.parse(input, doc);
+
+    if (! success) {
+        free(path);
+        throw IOException("Unable to parse JSON input stream");
+    }
+
+    assert(doc.isObject());
+    Json::Value &missionList = doc["missions"];
+    assert(missionList.isArray());
+
+    Downgrader::Options options;
+
+    for (int i = 0; i < missionList.size(); i++) {
+        Json::Value &missionEntry = missionList[i];
+        assert(missionEntry.isObject());
+
+        int missionCode = missionEntry.get("mission", -1).asInt();
+        assert(missionCode >= 0);
+        // assert(missionCode >= 0 && missionCode <= 61);
+
+        Json::Value &codeGroup = missionEntry["downgrades"];
+        assert(codeGroup.isArray());
+
+        for (int j = 0; j < codeGroup.size(); j++) {
+            options.add(missionCode, codeGroup[j].asInt());
+        }
+    }
+
+    input.close();
+    free(path);
+    return options;
 }

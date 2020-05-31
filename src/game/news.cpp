@@ -24,6 +24,8 @@
 //
 // NewsCaster Main Files
 
+// This file controls the newscast.
+
 #include <stdexcept>
 
 #include "display/graphics.h"
@@ -68,11 +70,11 @@ enum news_type {
 
 /* country, color, type */
 static int news_index[2][2][3] = {
-    { /* usa */
+    { /* USA */
         { 9, 1, 3 }, /* color */
         { 8, 0, 2 }, /* b&w */
     },
-    { /* soviet */
+    { /* Soviet */
         { 10, 4, 6 }, /* color */
         { 11, 5, 7 }, /* b&w */
     },
@@ -592,7 +594,7 @@ News(char plr)
     // introduction, the current turn is calculated, compared with the
     // number of news events (1/turn) and a flag is set to replay the
     // news if the save has already accounted for the events.
-    int turn = 2 * (Data->Year - 57) + Data->Season + 1; // start at turn 1
+    int turn = 2 * (Data->Year - 57) + Data->Season + 1;  // start at turn 1
     bool freshNews = (turn > Data->P[plr].eCount);
 
     if (freshNews) {
@@ -726,14 +728,14 @@ News(char plr)
                 }
 
                 PlayVoice();
-                /* the "mysterious" delay of soviet newscaster.
+                /* the "mysterious" delay of Soviet newscaster.
                  * she is out of sync anyway... */
                 loc++;
 
                 break;
 
             case 4:        //: Angle Out
-                music_stop(); // Should have ended, but force stop.
+                music_stop();  // Should have ended, but force stop.
                 music_start_loop((plr % 2) ? M_NEW1950 : M_NEW1970, false);
                 LoadNewsAnim(plr, BW, NEWS_ANGLE, FIRST_FRAME, fp);
                 Status = 0;
@@ -780,7 +782,12 @@ News(char plr)
             Status = 1;
         }
 
-        if (ctop > 0 && key == 0x4900) {
+        if (ctop > 0 && key == K_HOME) {
+            // Home Key
+            ctop = 1;
+            DrawNText(plr, ctop);
+
+        } else if (ctop > 0 && key == K_PGUP) {
             // Page Up Key
             ctop -= 7;
 
@@ -789,7 +796,7 @@ News(char plr)
             }
 
             DrawNText(plr, ctop);
-        } else if (ctop < bline && key == 0x5100) {
+        } else if (ctop < bline && key == K_PGDN) {
             // Page Down Key
             ctop += 7;
 
@@ -798,6 +805,11 @@ News(char plr)
             }
 
             DrawNText(plr, ctop);
+        } else if (ctop < bline && key == K_END) {
+            // End Key
+            ctop = bline;
+            DrawNText(plr, ctop);
+            
         } else if (ctop > 0 && ((x >= 303 && y > 120 && x <= 313 && y <= 156
                                  && mousebuttons > 0) || (key >> 8) == 72)) {
             // Up Arrow
