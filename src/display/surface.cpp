@@ -1,7 +1,6 @@
 
 #include "surface.h"
 
-#include <SDL/SDL.h>
 #include <algorithm>
 #include <assert.h>
 

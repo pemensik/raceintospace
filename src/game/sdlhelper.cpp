@@ -32,7 +32,7 @@
 #include "sdlhelper.h"
 #include <assert.h>
 #include <memory.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "Buzz_inc.h"
 #include "options.h"
 #include "utils.h"

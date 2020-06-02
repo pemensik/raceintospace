@@ -18,6 +18,15 @@ namespace display
 //     palette after setting the palette and before any draw()ing.
 //
 // These assumptions are consistent with the DOS version's video environemnt.
+// https://github.com/fosterseth/sdl2_video_player/blob/master/vidserv.c
+// SDL_Texture variant, instead of SDL_Surface??
+#if 0
+SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+SDL_RenderClear(sdlRenderer);
+SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+SDL_RenderPresent(sdlRenderer);
+#endif
+
 class LegacySurface : public Surface
 {
 public:

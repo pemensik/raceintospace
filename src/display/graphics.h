@@ -1,7 +1,7 @@
 #ifndef DISPLAY__GRAPHICS_H
 #define DISPLAY__GRAPHICS_H
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <string>
 #include <vector>
 
@@ -13,6 +13,9 @@ namespace display
 {
 
 class LegacySurface;
+
+// FIXME: SDL2 variant of Overlay??
+typedef SDL_Surface SDL_Overlay;
 
 class Graphics
 {

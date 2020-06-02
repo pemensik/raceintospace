@@ -2,7 +2,7 @@
 #include "surface.h"
 #include "legacy_surface.h"
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -52,7 +52,9 @@ void Graphics::create(const std::string &title, bool fullscreen)
 
 
 
-    _display = SDL_SetVideoMode(WIDTH * SCALE, HEIGHT * SCALE, 24, 0);
+    // _display = SDL_SetVideoMode(WIDTH * SCALE, HEIGHT * SCALE, 24, 0);
+    _display = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH * SCALE, HEIGHT * SCALE, SDL_WINDOW_OPENGL);
+    _renderer = SDL_CreateRenderer(_display, -1, 0);
 
     if (!_display) {
         throw std::runtime_error(SDL_GetError());
@@ -66,19 +68,21 @@ void Graphics::create(const std::string &title, bool fullscreen)
         throw std::runtime_error(SDL_GetError());
     }
 
-    _video = SDL_CreateYUVOverlay(VIDEO_WIDTH, VIDEO_HEIGHT, SDL_YV12_OVERLAY, _display);
+    //_video = SDL_CreateYUVOverlay(VIDEO_WIDTH, VIDEO_HEIGHT, SDL_YV12_OVERLAY, _display);
+    _video = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_YV12, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
 
     if (!_video) {
         throw std::runtime_error(SDL_GetError());
     }
 
-    _news = SDL_CreateYUVOverlay(NEWS_WIDTH, NEWS_HEIGHT, SDL_YV12_OVERLAY, _display);
+    //_news = SDL_CreateYUVOverlay(NEWS_WIDTH, NEWS_HEIGHT, SDL_YV12_OVERLAY, _display);
+    _news = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_YV12, 0, NEWS_WIDTH, NEWS_HEIGHT);
 
     if (!_news) {
         throw std::runtime_error(SDL_GetError());
     }
 
-    SDL_WM_SetCaption(title.c_str(), NULL);
+    //SDL_WM_SetCaption(title.c_str(), NULL);
 
 }
 
