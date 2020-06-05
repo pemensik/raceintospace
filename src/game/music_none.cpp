@@ -26,118 +26,54 @@
 #include "Buzz_inc.h"
 #include "pace.h"
 #include "utils.h"
-#include "sdlhelper.h"
-
-// A map of music_tracks to filenames
-struct music_key {
-    enum music_track track;
-    char *name;
-} music_key[] = {
-    { M_ASSEMBLY, "assembly" },
-    { M_ASTTRNG, "asttrng" },
-    { M_BADNEWS, "badnews" },
-    { M_DRUMSM, "drumsm" },
-    { M_ELEPHANT, "elephant" },
-    { M_FILLER, "filler" },
-    { M_FUTURE, "future" },
-    { M_GOOD, "good" },
-    { M_HARDWARE, "hardware" },
-    { M_HISTORY, "history" },
-    { M_INTEL, "intel" },
-    { M_INTELLEG, "intelleg" },
-    { M_INTERLUD, "interlud" },
-    { M_LIFTOFF, "liftoff" },
-    { M_MISSPLAN, "missplan" },
-    { M_NEW1950, "new1950" },
-    { M_NEW1970, "new1970" },
-    { M_PRES, "pres" },
-    { M_PRGMTRG, "prgmtrg" },
-    { M_RD, "r&d" },
-    { M_SOVTYP, "sovtyp" },
-    { M_SUCCESS, "success" },
-    { M_SVFUN, "svfun" },
-    { M_SVLOGO, "svlogo" },
-    { M_SVPORT, "svport2" },
-    { M_THEME, "theme" },
-    { M_UNSUCC, "unsucc" },
-    { M_USFUN, "usfun" },
-    { M_USMIL, "usmil" },
-    { M_USPORT, "usport2" },
-    { M_USSRMIL, "ussrmil" },
-    { M_VICTORY, "victory" },
-    { M_MAX_MUSIC, NULL },
-};
+#include "music.h"
 
 // This structure defines each track
 struct music_file {
-    // Pointer to the audio buffer, once loaded from disk
-    char *buf;
-    size_t buf_size;
-
-    // Can this track be played? i.e., does it exist?
-    int unplayable;
-
     // Is this track playing?
     int playing;
 };
-struct music_file music_files[M_MAX_MUSIC];
+static struct music_file music_files[M_MAX_MUSIC];
 
-// Ensure that the specified music track is in memory, loading it if required
-void music_load(enum music_track track)
-{
-}
+/* Follows implementation of fake music player */
 
-// Start playing the given track
-void music_start_loop(enum music_track track, int loop)
+void MusicNone::Start(enum music_track track, int loop)
 {
     music_files[track].playing = 1;
 }
 
-// Stop a specific track
-void music_stop_track(enum music_track track)
+void MusicNone::Stop(enum music_track track)
 {
     if (music_files[track].playing) {
         music_files[track].playing = 0;
     }
 }
 
-// Stop all tracks
-void music_stop()
+void MusicNone::Stop()
 {
     int i;
 
     // Iterate through the list and stop any playing tracks by calling music_stop_track()
     for (i = 0; i < M_MAX_MUSIC; i ++) {
         if (music_files[i].playing) {
-            music_stop_track((music_track)i);
+            Stop((music_track)i);
         }
     }
 }
 
-int music_is_playing()
+bool MusicNone::IsPlaying()
 {
     int i;
 
     for (i = 0; i < M_MAX_MUSIC; i ++) {
-        if (music_files[i].playing) {
-            return 1;
-        }
+        if (music_files[i].playing)
+		return true;
     }
-
-    return 0;
+    return false;
 }
 
-int music_is_track_playing(enum music_track track)
+bool MusicNone::IsTrackPlaying(enum music_track track)
 {
     return music_files[track].playing;
 }
 
-void music_pump()
-{
-    // TODO: Check to see that all the tracks we think are playing actually are
-    // This doesn't apply to looped tracks, since those keep playing forever
-}
-
-void music_set_mute(int muted)
-{
-}

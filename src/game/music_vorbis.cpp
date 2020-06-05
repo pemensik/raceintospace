@@ -26,45 +26,8 @@
 #include "utils.h"
 #include "sdlhelper.h"
 
-// A map of music_tracks to filenames
-struct music_key {
-    enum music_track track;
-    char *name;
-} music_key[] = {
-    { M_ASSEMBLY, "assembly" },
-    { M_ASTTRNG, "asttrng" },
-    { M_BADNEWS, "badnews" },
-    { M_DRUMSM, "drumsm" },
-    { M_ELEPHANT, "elephant" },
-    { M_FILLER, "filler" },
-    { M_FUTURE, "future" },
-    { M_GOOD, "good" },
-    { M_HARDWARE, "hardware" },
-    { M_HISTORY, "history" },
-    { M_INTEL, "intel" },
-    { M_INTELLEG, "intelleg" },
-    { M_INTERLUD, "interlud" },
-    { M_LIFTOFF, "liftoff" },
-    { M_MISSPLAN, "missplan" },
-    { M_NEW1950, "new1950" },
-    { M_NEW1970, "new1970" },
-    { M_PRES, "pres" },
-    { M_PRGMTRG, "prgmtrg" },
-    { M_RD, "r&d" },
-    { M_SOVTYP, "sovtyp" },
-    { M_SUCCESS, "success" },
-    { M_SVFUN, "svfun" },
-    { M_SVLOGO, "svlogo" },
-    { M_SVPORT, "svport2" },
-    { M_THEME, "theme" },
-    { M_UNSUCC, "unsucc" },
-    { M_USFUN, "usfun" },
-    { M_USMIL, "usmil" },
-    { M_USPORT, "usport2" },
-    { M_USSRMIL, "ussrmil" },
-    { M_VICTORY, "victory" },
-    { M_MAX_MUSIC, NULL },
-};
+#include "music.h"
+#include "music_vorbis.h"
 
 // This structure defines each track
 struct music_file {
@@ -84,9 +47,10 @@ struct music_file {
 struct music_file music_files[M_MAX_MUSIC];
 
 // Ensure that the specified music track is in memory, loading it if required
-void music_load(enum music_track track)
+static void music_load(enum music_track track)
 {
     char fname[20] = "";
+    const char *trackname;
     int i;
     ssize_t bytes;
 
@@ -96,12 +60,8 @@ void music_load(enum music_track track)
     }
 
     // Find the name for this track
-    for (i = 0; music_key[i].track != M_MAX_MUSIC; i++) {
-        if (music_key[i].track == track && music_key[i].name) {
-            snprintf(fname, sizeof(fname), "%s.OGG", music_key[track].name);
-            break;
-        }
-    }
+    trackname = Music::TrackName(track);
+    snprintf(fname, sizeof(fname), "%s.OGG", trackname);
 
     // Bail out if this track isn't known
     if (strlen(fname) == 0) {
@@ -127,8 +87,10 @@ void music_load(enum music_track track)
     }
 }
 
+static void music_stop_vob();
+
 // Start playing the given track
-void music_start_loop(enum music_track track, int loop)
+static void music_start_loop_vob(enum music_track track, int loop)
 {
     // Load the track as necessary
     music_load(track);
@@ -158,7 +120,7 @@ void music_start_loop(enum music_track track, int loop)
 }
 
 // Stop a specific track
-void music_stop_track(enum music_track track)
+static void music_stop_track_vob(enum music_track track)
 {
     if (music_files[track].playing) {
         // XXX: stop the global music channel
@@ -170,19 +132,19 @@ void music_stop_track(enum music_track track)
 }
 
 // Stop all tracks
-void music_stop()
+static void music_stop_vob()
 {
     int i;
 
     // Iterate through the list and stop any playing tracks by calling music_stop_track()
     for (i = 0; i < M_MAX_MUSIC; i ++) {
         if (music_files[i].playing) {
-            music_stop_track((music_track)i);
+            music_stop_track_vob((music_track)i);
         }
     }
 }
 
-int music_is_playing()
+static int music_is_playing_vob()
 {
     int i;
 
@@ -195,7 +157,7 @@ int music_is_playing()
     return 0;
 }
 
-int music_is_track_playing(enum music_track track)
+static int music_is_track_playing_vob(enum music_track track)
 {
     return music_files[track].playing;
 }
@@ -206,7 +168,42 @@ void music_pump()
     // This doesn't apply to looped tracks, since those keep playing forever
 }
 
-void music_set_mute(int muted)
+void music_set_mute_vob(int muted)
 {
     MuteChannel(AV_MUSIC_CHANNEL, muted);
+}
+
+MusicVorbis::~MusicVorbis()
+{
+    Stop();
+}
+
+void MusicVorbis::Start(enum music_track track, int loop)
+{
+    music_start_loop_vob(track, loop);
+}
+
+void MusicVorbis::Stop(enum music_track track)
+{
+    music_stop_track_vob(track);
+}
+
+void MusicVorbis::Stop()
+{
+    music_stop_vob();
+}
+
+bool MusicVorbis::IsPlaying()
+{
+    return music_is_playing_vob()!=0;
+}
+
+bool MusicVorbis::IsTrackPlaying(enum music_track track)
+{
+    return music_is_track_playing_vob(track)!=0;
+}
+
+void MusicVorbis::SetMute(bool muted)
+{
+    music_set_mute_vob(muted);
 }

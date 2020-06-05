@@ -29,6 +29,7 @@ set(game_sources
   crew.cpp
   downgrader.cpp
   draw.cpp
+  data.cpp
   endgame.cpp
   endianness.cpp
   file.cpp
@@ -38,7 +39,6 @@ set(game_sources
   futbub.cpp
   future.cpp
   gamedata.cpp
-  game_main.cpp
   gr.cpp
   hardef.cpp
   hardware.cpp
@@ -80,10 +80,13 @@ set(game_sources
   utils.cpp
   vab.cpp
   sdlhelper.cpp
+  music.cpp
+  music_none.cpp
   )
 
 # Files related only to UI
 set (ui_sources
+  game_main.cpp
   )
 
 set(game_libraries
@@ -108,7 +111,6 @@ endif()
 # against it (https://cmake.org/cmake/help/v3.14/command/file.html)
 set(test_dir ${PROJECT_SOURCE_DIR}/test)
 set(test_sources
-  music_none.cpp
   ${test_dir}/game/dummy_test.cpp
   ${test_dir}/game/mission_test.cpp
   ${test_dir}/game/downgrade_test.cpp
