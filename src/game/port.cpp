@@ -1237,7 +1237,7 @@ void Port(char plr)
 
     pKey = 0;
 
-    music_start((plr == 0) ? M_USPORT : M_SVPORT);
+    music->Start((plr == 0) ? M_USPORT : M_SVPORT);
     kMode = kPad = kEnt = 0;
     i = 0;  // this is used to loop through all the selection regions on the port
 
@@ -1364,7 +1364,7 @@ void Port(char plr)
 #if SPOT_ON
                                 SpotCrap(0, SPOT_KILL);  // remove spots
 #endif
-                                music_stop();
+                                music->Stop();
                             } else {
                                 SUSPEND = 1;
                             }
@@ -1380,8 +1380,8 @@ void Port(char plr)
                             case pNEWMUSIC:
                             case pNOFADE:
                                 if (res != pNOFADE) {
-                                    music_stop();
-                                    music_start((plr == 0) ? M_USPORT : M_SVPORT);
+                                    music->Stop();
+                                    music->Start((plr == 0) ? M_USPORT : M_SVPORT);
                                 }
 
                                 SpotCrap(0, SPOT_KILL);  // remove spots
@@ -1459,7 +1459,7 @@ void Port(char plr)
 
 #endif
                                 SpotCrap(0, SPOT_KILL);  // remove spots
-                                music_stop();
+                                music->Stop();
                                 save_game("AUTOSAVE.SAV");
                                 return;
 
@@ -1473,7 +1473,7 @@ void Port(char plr)
 
 #endif
                                 SpotCrap(0, SPOT_KILL);  // remove spots
-                                music_stop();
+                                music->Stop();
                                 return;
                             } // switch
 

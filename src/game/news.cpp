@@ -648,7 +648,7 @@ News(char plr)
 
     // Leaving this here for now, rather than moving it to the
     // loop -- rnyoakum
-    music_start_loop((plr % 2) ? M_NEW1950 : M_NEW1970, false);
+    music->Start((plr % 2) ? M_NEW1950 : M_NEW1970, false);
 
     /* Tom's News kludge, also open and load first anim */
     fp = LoadNewsAnim(plr, BW, NEWS_ANGLE, TOMS_BUGFIX, fp);
@@ -735,8 +735,8 @@ News(char plr)
                 break;
 
             case 4:        //: Angle Out
-                music_stop();  // Should have ended, but force stop.
-                music_start_loop((plr % 2) ? M_NEW1950 : M_NEW1970, false);
+                music->Stop();  // Should have ended, but force stop.
+                music->Start((plr % 2) ? M_NEW1950 : M_NEW1970, false);
                 LoadNewsAnim(plr, BW, NEWS_ANGLE, FIRST_FRAME, fp);
                 Status = 0;
                 loc++;
@@ -823,7 +823,7 @@ News(char plr)
             InBox(245, 5, 314, 17);
             WaitForMouseUp();
             key = 0;
-            music_stop();
+            music->Stop();
             KillVoice();
             break;
         } else if (ctop < bline && ((x >= 303 && y > 158 && x <= 313

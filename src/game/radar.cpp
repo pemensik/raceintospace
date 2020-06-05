@@ -449,7 +449,7 @@ void PadPict(char poff)
 void ShowPad(char plr, char pad)
 {
     char temp;
-    music_start((plr == 0) ? M_USMIL : M_USSRMIL);
+    music->Start((plr == 0) ? M_USMIL : M_USSRMIL);
     PadDraw(plr, pad);
     temp = CheckCrewOK(plr, pad);
 

@@ -980,7 +980,7 @@ void VAB(char plr)
     boost::shared_ptr<display::LegacySurface> hw;
 
     LoadMIVals();
-    music_start(M_HARDWARE);
+    music->Start(M_HARDWARE);
 
     // FutureCheck brings up the Launch Pad menu, displaying the
     // missions assigned to each of the pads, and allows the player
@@ -1323,7 +1323,7 @@ void VAB(char plr)
     }
 
     Vab_Spot = (Data->P[plr].Mission[0].Hard[Mission_PrimaryBooster] > 0) ? 1 : 0;
-    music_stop();
+    music->Stop();
 }
 
 

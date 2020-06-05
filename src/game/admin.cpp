@@ -141,7 +141,7 @@ void Admin(char plr)
             FadeIn(2, 10, 0, 0);
         }
 
-        music_start(M_GOOD);
+        music->Start(M_GOOD);
 
         helpText = (plr == 0) ? "i702" : "i703";
         keyHelpText = (plr == 0) ? "k601" : "k602";
@@ -150,17 +150,17 @@ void Admin(char plr)
 
         switch (i) {
         case 1:
-            music_stop();
-            music_start(M_DRUMSM);
+            music->Stop();
+            music->Start(M_DRUMSM);
             helpText = "i007";
             keyHelpText = "k007";
             Budget(plr);
             key = 0;
-            music_stop();
+            music->Stop();
             break;
 
         case 2:
-            music_stop();
+            music->Stop();
             helpText = "i008";
             HPurc(plr);
             key = 0;
@@ -169,15 +169,15 @@ void Admin(char plr)
         case 3:
             helpText = "i010";
             keyHelpText = "k010";
-            music_stop();
-            music_start(M_MISSPLAN);
+            music->Stop();
+            music->Start(M_MISSPLAN);
             Future(plr);
-            music_stop();
+            music->Stop();
             key = 0;
             break;
 
         case 4:
-            music_stop();
+            music->Stop();
             helpText = "i012";
             keyHelpText = "k012";
             AstSel(plr);
@@ -185,7 +185,7 @@ void Admin(char plr)
             break;
 
         case 5:
-            music_stop();
+            music->Stop();
             helpText = "i013";
             keyHelpText = "k013";
             Prefs(1);
@@ -213,7 +213,7 @@ void Admin(char plr)
         }
     } while (!(i == 7 || (i == 6 && (QUIT || LOAD))));
 
-    music_stop();
+    music->Stop();
     helpText = "i000";
     keyHelpText = "k000";
     WaitForMouseUp();

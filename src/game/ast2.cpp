@@ -186,7 +186,7 @@ void Limbo(char plr)
     int i, AstroList[100], BarA, count, now2, tag = 0;
     memset(AstroList, -1, sizeof AstroList);
     DrawLimbo(plr);
-    music_start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
+    music->Start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
 
     now2 = BarA = count = 0;
     ShBox(26, 130 + BarA * 8, 152, 138 + BarA * 8);
@@ -360,7 +360,7 @@ void Limbo(char plr)
             }
 
             OutBox(245, 5, 314, 17);
-            music_stop();
+            music->Stop();
             return;
         }
 
@@ -452,10 +452,10 @@ void Limbo(char plr)
                 WaitForMouseUp();
                 key = 0;
                 OutBox(167, 95 + 21 * i, 236, 109 + 21 * i);
-                music_stop();
+                music->Stop();
                 Programs(plr, i + 1);
                 DrawLimbo(plr);
-                music_start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
+                music->Start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
 
                 InBox(241, 48, 313, 65);
                 OutBox(167, 48, 239, 65);
@@ -588,10 +588,10 @@ void Limbo(char plr)
                 WaitForMouseUp();
                 key = 0;
                 OutBox(244, 95 + 21 * i, 313, 109 + 21 * i);
-                music_stop();
+                music->Stop();
                 Train(plr, i + 1);
                 DrawLimbo(plr);
-                music_start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
+                music->Start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
 
                 fill_rectangle(166, 78, 314, 88, 10);
                 display::graphics.setForegroundColor(11);

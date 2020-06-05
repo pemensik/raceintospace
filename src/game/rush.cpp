@@ -383,7 +383,7 @@ void Rush(char plr)
     int fCsh = Data->P[plr].Cash;
     display::graphics.setForegroundColor(1);
 
-    music_start((plr == 0) ? M_USMIL : M_USSRMIL);
+    music->Start((plr == 0) ? M_USMIL : M_USSRMIL);
     FadeIn(2, 10, 0, 0);
     WaitForMouseUp();
 
@@ -548,7 +548,7 @@ void Rush(char plr)
                     Data->P[plr].Mission[2].Rushing = R3;
                 }
 
-                music_stop();
+                music->Stop();
                 return;  // Done
             }
         }

@@ -910,7 +910,7 @@ void Draw_Mis_Stats(char plr, char index, int *where, char mode)
             delay(10);
 
             if (!AI[plr]) {
-                music_stop();
+                music->Stop();
             }
 
             FadeOut(2, 10, 0, 0);

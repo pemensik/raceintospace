@@ -87,10 +87,19 @@ static void music_load(enum music_track track)
     }
 }
 
-static void music_stop_vob();
+void music_pump()
+{
+    // TODO: Check to see that all the tracks we think are playing actually are
+    // This doesn't apply to looped tracks, since those keep playing forever
+}
 
-// Start playing the given track
-static void music_start_loop_vob(enum music_track track, int loop)
+
+MusicVorbis::~MusicVorbis()
+{
+    Stop();
+}
+
+void MusicVorbis::Start(enum music_track track, int loop)
 {
     // Load the track as necessary
     music_load(track);
@@ -112,15 +121,14 @@ static void music_start_loop_vob(enum music_track track, int loop)
 
     // XXX: Stop the existing music, since we need the music channel
     // This should be changed to dynamic channel allocation, to allow layering music tracks
-    music_stop();
+    Stop();
 
     // Play the track, and indicate that it's playing
     play(&music_files[track].chunk, AV_MUSIC_CHANNEL);
     music_files[track].playing = 1;
 }
 
-// Stop a specific track
-static void music_stop_track_vob(enum music_track track)
+void MusicVorbis::Stop(enum music_track track)
 {
     if (music_files[track].playing) {
         // XXX: stop the global music channel
@@ -131,79 +139,37 @@ static void music_stop_track_vob(enum music_track track)
     }
 }
 
-// Stop all tracks
-static void music_stop_vob()
+void MusicVorbis::Stop()
 {
     int i;
 
     // Iterate through the list and stop any playing tracks by calling music_stop_track()
     for (i = 0; i < M_MAX_MUSIC; i ++) {
         if (music_files[i].playing) {
-            music_stop_track_vob((music_track)i);
+            Stop((music_track)i);
         }
     }
 }
 
-static int music_is_playing_vob()
+bool MusicVorbis::IsPlaying()
 {
     int i;
 
     for (i = 0; i < M_MAX_MUSIC; i ++) {
         if (music_files[i].playing) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
-}
-
-static int music_is_track_playing_vob(enum music_track track)
-{
-    return music_files[track].playing;
-}
-
-void music_pump()
-{
-    // TODO: Check to see that all the tracks we think are playing actually are
-    // This doesn't apply to looped tracks, since those keep playing forever
-}
-
-void music_set_mute_vob(int muted)
-{
-    MuteChannel(AV_MUSIC_CHANNEL, muted);
-}
-
-MusicVorbis::~MusicVorbis()
-{
-    Stop();
-}
-
-void MusicVorbis::Start(enum music_track track, int loop)
-{
-    music_start_loop_vob(track, loop);
-}
-
-void MusicVorbis::Stop(enum music_track track)
-{
-    music_stop_track_vob(track);
-}
-
-void MusicVorbis::Stop()
-{
-    music_stop_vob();
-}
-
-bool MusicVorbis::IsPlaying()
-{
-    return music_is_playing_vob()!=0;
+    return false;
 }
 
 bool MusicVorbis::IsTrackPlaying(enum music_track track)
 {
-    return music_is_track_playing_vob(track)!=0;
+    return music_files[track].playing;
 }
 
 void MusicVorbis::SetMute(bool muted)
 {
-    music_set_mute_vob(muted);
+    MuteChannel(AV_MUSIC_CHANNEL, muted);
 }

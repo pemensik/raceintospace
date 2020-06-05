@@ -310,10 +310,10 @@ void Intel(char plr)
 
     // FadeOut(2,pal,10,0,0);
     if (plr == 1) {
-        music_start(M_INTELLEG);
+        music->Start(M_INTELLEG);
         strncpy((char *)&IName[1], "KGB", 3);
     } else {
-        music_start(M_INTEL);
+        music->Start(M_INTEL);
     }
 
     beg = 1;
@@ -378,7 +378,7 @@ void Intel(char plr)
         }
     } while (i == 1 || i == 2);
 
-    music_stop();
+    music->Stop();
 }
 
 

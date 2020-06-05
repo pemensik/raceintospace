@@ -217,7 +217,7 @@ void Introd(void)
     int k;
     double start;
 
-    music_start(M_LIFTOFF);
+    music->Start(M_LIFTOFF);
 
     /* Frame 0 is Interplay, and frame 1 is Strategic Visions */
     /* These are both defunct, so start at frame 2 instead */
@@ -284,13 +284,13 @@ void NextTurn(char plr)
     display::graphics.screen()->draw(countrySeals, 110 * plr, 0, 107, 94, 30, 85);
 
     FadeIn(2, 10, 0, 0);
-    music_start((plr == 0) ? M_GOOD : M_FUTURE);
+    music->Start((plr == 0) ? M_GOOD : M_FUTURE);
 
     WaitForMouseUp();
     WaitForKeyOrMouseDown();
     key = 0;
 
-    music_stop();
+    music->Stop();
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
     return;

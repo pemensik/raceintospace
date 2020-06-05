@@ -531,14 +531,14 @@ void AI_Begin(char plr)
     display::graphics.screen()->draw(countrySeals, 110 * plr, 0, 107, 93, 30, 85);
     display::graphics.setForegroundColor(11);
     draw_string(60, 58, "COMPUTER TURN:  THINKING...");
-    music_start(M_SOVTYP);
+    music->Start(M_SOVTYP);
     FadeIn(2, 10, 0, 0);
     colss = 0;
 }
 
 void AI_Done(void)
 {
-    music_stop();
+    music->Stop();
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
 }

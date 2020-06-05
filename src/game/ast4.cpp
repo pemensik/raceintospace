@@ -697,7 +697,7 @@ void Programs(char plr, char prog)
         max = prog;
     }
 
-    music_start(M_PRGMTRG);
+    music->Start(M_PRGMTRG);
     DrawProgs(plr, prog);
     Flts(0, 0);
 
@@ -740,7 +740,7 @@ void Programs(char plr, char prog)
             Help("i114");
         }
 
-        music_stop();
+        music->Stop();
         return;
     }
 
@@ -1226,7 +1226,7 @@ void Programs(char plr, char prog)
                     Data->P[plr].Pool[M[i]].Assign = 0;
                 }
 
-                music_stop();
+                music->Stop();
 
                 return;            /* Done */
             }

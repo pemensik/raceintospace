@@ -527,7 +527,7 @@ void AstSel(char plr)
 
     MaxMen = Index = now = now2 = max = min = count = 0;
 
-    music_start(M_DRUMSM);
+    music->Start(M_DRUMSM);
     DrawAstCheck(plr);
     WaitForMouseUp();
     i = 0;
@@ -580,7 +580,7 @@ void AstSel(char plr)
     }
 
     if (i == 2) {
-        music_stop();    /* too poor for astronauts or NO */
+        music->Stop();    /* too poor for astronauts or NO */
         return;
     }
 
@@ -1278,7 +1278,7 @@ void AstSel(char plr)
 
                 OutBox(245, 5, 314, 17);
 
-                music_stop();
+                music->Stop();
 
                 return;  /* Done */
             }

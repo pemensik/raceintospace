@@ -430,7 +430,7 @@ av_step(void)
     SDL_Event ev;
 
     /* Have the music system update itself as required */
-    music_pump();
+    music->Pump();
 
     while (SDL_PollEvent(&ev)) {
         av_process_event(&ev);

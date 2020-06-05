@@ -54,28 +54,6 @@ enum music_track {
     M_MAX_MUSIC
 };
 
-// Start a given track, and indicate if the track should loop when complete
-#define music_start(track) music_start_loop(track, 1)
-void music_start_loop(enum music_track track, int loop);
-
-// Stop a given track from playing, or all playing tracks
-void music_stop();
-void music_stop_all();
-
-// Checks to see if a particular track_name is playing, or if any track is playing
-int music_is_playing();
-int music_is_track_playing(enum music_track track);
-
-// Do any periodic work that the music system might need
-// Called at least 20 times per second
-void music_pump();
-
-// Toggle muting of the music system
-void music_set_mute(int muted);
-
-// Initialise music backend
-int music_init(const char *impl);
-
 class Music
 {
 public:

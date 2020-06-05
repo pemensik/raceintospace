@@ -714,7 +714,7 @@ void Viewing(char plr)
     DrawVText(ctop);
     InBox(244, 184, 313, 194);
     FadeIn(2, 10, 0, 0);
-    music_start(M_SOVTYP);
+    music->Start(M_SOVTYP);
     WaitForMouseUp();
 
     while (1) {
@@ -808,7 +808,7 @@ void Viewing(char plr)
             }
 
             //OutBox(245,5,314,17);
-            music_stop();
+            music->Stop();
             return;  // Continue
         } else if (key == 'O' || (mousebuttons > 0 && x >= 6 && y >= 28 && x <= 75 && y <= 38)) {
             olderMiss++;

@@ -86,7 +86,7 @@ void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx)
     }
 
     if (where == 0 || where == 2) {
-        music_start(M_SOVTYP);
+        music->Start(M_SOVTYP);
         IOBox(6, 105, 83, 140);
         IOBox(6, 158, 83, 193);
         IOBox(236, 105, 313, 140);
@@ -104,7 +104,7 @@ void DrawPrefs(int where, char a1, char a2, DisplayContext &dctx)
         fill_rectangle(237, 35, 312, 41, 0);
         fill_rectangle(7, 35, 82, 41, 0);
     } else {
-        music_start(M_DRUMSM);
+        music->Start(M_DRUMSM);
         InBox(8, 107, 81, 138);
         InBox(8, 160, 81, 191);
         InBox(238, 107, 311, 138);
@@ -474,7 +474,7 @@ void Prefs(int where)
                         fclose(fin);
                     }
 
-                    music_stop();
+                    music->Stop();
                     return;
                 }
             } else if (key == 'P' && (where == 0 || where == 3)) {
@@ -515,7 +515,7 @@ void Prefs(int where)
                 WaitForMouseUp();
                 Data->Def.Music = !Data->Def.Music;
                 // SetMusicVolume((Data->Def.Music==1)?100:0);
-                music_set_mute(!Data->Def.Music);
+                music->SetMute(!Data->Def.Music);
                 display::graphics.legacyScreen()->draw(dctx.prefs_image,
                                                        153 + 34 * (Data->Def.Music), 0, 33, 29, 101, 31);
                 OutBox(100, 30, 135, 61);

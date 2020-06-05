@@ -397,9 +397,9 @@ void Train(char plr, int level)
     memset(Train, 0x00, sizeof(Train));
 
     if (level == 0) {
-        music_start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
+        music->Start((plr == 0) ? M_ASTTRNG : M_ASSEMBLY);
     } else {
-        music_start(M_DRUMSM);
+        music->Start(M_DRUMSM);
     }
 
     switch (level) {
@@ -680,7 +680,7 @@ void Train(char plr, int level)
                 }
 
                 OutBox(245, 5, 314, 17);
-                music_stop();
+                music->Stop();
                 return;  /* Done */
             } /* end x-y if */
         } /* end mouse if */
@@ -757,20 +757,20 @@ void InjuredNautCenter(char plr, int sel)
     if (plr == 0) {
         if (sel == HOSPITAL_BLD) {
             draw_heading(40, 5, "US HOSPITAL", 0, -1);
-            music_start(M_BADNEWS);
+            music->Start(M_BADNEWS);
         } else {
             draw_heading(37, 5, "ARLINGTON CEMETERY", 0, -1);
-            music_start(M_USFUN);
+            music->Start(M_USFUN);
         }
     }
 
     if (plr == 1) {
         if (sel == HOSPITAL_BLD) {
             draw_heading(40, 5, "SOVIET INFIRMARY", 0, -1);
-            music_start(M_INTERLUD);
+            music->Start(M_INTERLUD);
         } else {
             draw_heading(40, 5, "KREMLIN WALL", 0, -1);
-            music_start(M_SVFUN);
+            music->Start(M_SVFUN);
         }
     }
 
@@ -874,7 +874,7 @@ void InjuredNautCenter(char plr, int sel)
         if ((mousebuttons > 0 && x >= 245 && y >= 5 && x <= 314 && y <= 17) || key == K_ENTER) {
             InBox(245, 5, 314, 17);
             WaitForMouseUp();
-            music_stop();
+            music->Stop();
             return;  /* Done */
         } /* end x-y if */
     }  /* end while */

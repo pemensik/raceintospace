@@ -262,7 +262,7 @@ void DrawReview(char plr)
 void Review(char plr)
 {
     DrawReview(plr);
-    music_start((plr == 0) ? M_PRES : M_RD);
+    music->Start((plr == 0) ? M_PRES : M_RD);
     WaitForMouseUp();
 
     while (1) {
@@ -273,7 +273,7 @@ void Review(char plr)
             if ((x >= 245 && y >= 5 && x <= 314 && y <= 17) || key == K_ENTER) {
                 InBox(245, 5, 314, 17);
                 WaitForMouseUp();
-                music_stop();
+                music->Stop();
                 return;  /* Done */
             }
         }
@@ -285,7 +285,7 @@ void Review(char plr)
 void MisRev(char plr, int pres)
 {
     if (!AI[plr]) {
-        music_start((pres > 0) ? M_SUCCESS : M_UNSUCC);
+        music->Start((pres > 0) ? M_SUCCESS : M_UNSUCC);
     }
 
     FadeOut(2, 10, 0, 0);

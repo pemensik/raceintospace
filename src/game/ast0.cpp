@@ -103,7 +103,7 @@ void Moon(char plr)
     draw_string(144, 159, "CONTINUE");
     draw_small_flag(plr, 114, 43);
 
-    music_start(M_HISTORY);
+    music->Start(M_HISTORY);
     FadeIn(2, 0, 0, 0);
     WaitForMouseUp();
 
@@ -119,7 +119,7 @@ void Moon(char plr)
                 delay(150);
             }
 
-            music_stop();
+            music->Stop();
             key = 0;
             return; // Continue
         }
@@ -633,7 +633,7 @@ void LMBld(char plr)
         draw_number(0, 0, Data->P[plr].Manned[5 + i].Steps - Data->P[plr].Manned[5 + i].Failures);
     }
 
-    music_start(M_HISTORY);
+    music->Start(M_HISTORY);
     FadeIn(2, 0, 0, 0);
     WaitForMouseUp();
 
@@ -649,7 +649,7 @@ void LMBld(char plr)
                 delay(150);
             }
 
-            music_stop();
+            music->Stop();
             key = 0;
             return; // Continue
         }
@@ -669,7 +669,7 @@ void SatBld(char plr)
         PlanText(plr, plan);
     }
 
-    music_start(M_HISTORY);
+    music->Start(M_HISTORY);
     FadeIn(2, 0, 0, 0);
 
     key = 0;
@@ -687,7 +687,7 @@ void SatBld(char plr)
             }
 
             // OutBox(245,5,314,17);
-            music_stop();
+            music->Stop();
             key = 0;
             return; // Continue
         } else if (Data->P[plr].Probe[PROBE_HW_INTERPLANETARY].Num >= 0 && ((x >= 166 && y >= 60 && x <= 199 && y <= 66 && mousebuttons > 0) || key == LT_ARROW)) {

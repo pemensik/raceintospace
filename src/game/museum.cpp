@@ -152,7 +152,7 @@ void Museum(char plr)
 
     AImg[3] += plr;
     // FadeOut(2,pal,10,0,0);
-    music_start(M_THEME);
+    music->Start(M_THEME);
     beg = 0;
 
     do {
@@ -243,7 +243,7 @@ void Museum(char plr)
         keyHelpText = "k000";
     } while (i != beg);
 
-    music_stop();
+    music->Stop();
     return;
 }
 

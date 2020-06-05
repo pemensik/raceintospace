@@ -518,7 +518,7 @@ void Load_LenFlag(char win)
 
 void Draw_NewEnd(char win)
 {
-    music_start(M_VICTORY);
+    music->Start(M_VICTORY);
 
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
@@ -550,7 +550,7 @@ void NewEnd(char win, char loc)
     int i, Re_Draw = 0;
     char R_V = 0;
 
-    music_start(M_VICTORY);
+    music->Start(M_VICTORY);
     EndGame(win, loc);
     Draw_NewEnd(win);
     R_V = Burst(win);
@@ -566,7 +566,7 @@ void NewEnd(char win, char loc)
         helpText = "i144";
         keyHelpText = "k044";
 
-        music_start(M_VICTORY);
+        music->Start(M_VICTORY);
 
         if (((key == 'P' || key == 'M' || key == 'H' || key == 'S') || mousebuttons > 0) || R_V == 0)
             if (Re_Draw == 1) {
@@ -629,7 +629,7 @@ void NewEnd(char win, char loc)
 
         if (((x >= 74 && y >= 182 && x <= 125 && y <= 190 && mousebuttons > 0) || key == 'S') || R_V == 2) {
             // Stats box
-            music_stop();
+            music->Stop();
             InBox(74, 182, 125, 190);
             WaitForMouseUp();
 
@@ -640,7 +640,7 @@ void NewEnd(char win, char loc)
             i = 0;
             key = 0;
             OutBox(74, 182, 125, 190);
-            music_start(M_THEME);
+            music->Start(M_THEME);
             Stat(win);
             Draw_NewEnd(win);
             helpText = "i144";
@@ -650,7 +650,7 @@ void NewEnd(char win, char loc)
 
         if (((x >= 134 && y >= 182 && x <= 185 && y <= 190 && mousebuttons > 0) || key == 'P') || R_V == 3) {
             // Parade
-            music_stop();
+            music->Stop();
             InBox(134, 182, 185, 190);
             WaitForMouseUp();
 
@@ -671,16 +671,16 @@ void NewEnd(char win, char loc)
             local.copyFrom(display::graphics.legacyScreen(), 149, 9, 309, 100);
             ShBox(149, 9, 309, 100);
             InBox(153, 13, 305, 96);
-            music_start(M_PRGMTRG);
+            music->Start(M_PRGMTRG);
             Replay(win, 0, 154, 14, 149, 82, (win == 0) ? "UPAR" : "SPAR");
-            music_stop();
+            music->Stop();
             helpText = "i144";
             keyHelpText = "k044";
         }
 
         if (((x >= 194 && y >= 182 && x <= 245 && y <= 190 && mousebuttons > 0) || key == 'M') || R_V == 4) {
             // Moon EVA
-            music_stop();
+            music->Stop();
             InBox(194, 182, 245, 190);
             WaitForMouseUp();
 
@@ -701,15 +701,15 @@ void NewEnd(char win, char loc)
             local.copyFrom(display::graphics.legacyScreen(), 149, 9, 309, 100);
             ShBox(149, 9, 309, 100);
             InBox(153, 13, 305, 96);
-            music_start(M_MISSPLAN);
+            music->Start(M_MISSPLAN);
             Replay(win, 0, 154, 14, 149, 82, (win == 0) ? "PUM3C6" : "PSM3C6");
-            music_stop();
+            music->Stop();
             helpText = "i144";
             keyHelpText = "k044";
         }
 
         if (((x >= 254 && y >= 182 && x <= 305 && y <= 190 && mousebuttons > 0) || key == K_ENTER) || R_V == 5) {
-            music_stop();
+            music->Stop();
             InBox(254, 182, 305, 190);
             WaitForMouseUp();
 
@@ -955,7 +955,7 @@ void FakeWin(char win)
     draw_string(0, 0, &Data->P[win].Pool[manOnMoon].Name[0]);
     display::graphics.setForegroundColor(6);
     FakeHistory(win, yr);
-    music_start(M_INTERLUD);
+    music->Start(M_INTERLUD);
     FadeIn(2, 10, 0, 0);
 
     WaitForMouseUp();
@@ -980,7 +980,7 @@ void FakeWin(char win)
         }
     }
 
-    music_stop();
+    music->Stop();
     return;
 }
 
@@ -1086,7 +1086,7 @@ void AltHistory(char plr)  // holds the winning player
 void SpecialEnd(void)
 {
     char i;
-    music_start(M_BADNEWS);
+    music->Start(M_BADNEWS);
 
     display::graphics.screen()->clear();
     ShBox(0, 0, 319, 24);
@@ -1138,7 +1138,7 @@ void SpecialEnd(void)
         }
     }
 
-    music_stop();
+    music->Stop();
     return;
 }
 
@@ -1215,7 +1215,7 @@ void PlayFirst(char plr, char first)
 
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
-    music_start(M_LIFTOFF);
+    music->Start(M_LIFTOFF);
     ShBox(80, 18, 240, 39);
     draw_heading(92, 22, "PRESTIGE FIRST", 0, -1);
     ShBox(80, 41, 240, 132);
@@ -1267,7 +1267,7 @@ void PlayFirst(char plr, char first)
     PauseMouse();
     FadeOut(2, 10, 0, 0);
     display::graphics.screen()->clear();
-    music_stop();
+    music->Stop();
     return;
 }
 

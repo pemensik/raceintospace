@@ -327,7 +327,7 @@ char RD(char player_index)
 
     FadeIn(2, 10, 0, 0);
 
-    music_start(M_HARDWARE);
+    music->Start(M_HARDWARE);
 
     WaitForMouseUp();
 
@@ -615,7 +615,7 @@ char RD(char player_index)
                     }
                 }
 
-                music_stop();
+                music->Stop();
                 Del_RD_BUT();
                 call = 0;
                 HARD1 = PROBE_HARDWARE;
@@ -630,7 +630,7 @@ char RD(char player_index)
                         Data->P[player_index].Buy[i][j] = buy[i][j];
                     }
 
-                music_stop();
+                music->Stop();
 
                 // DM Screen, Nikakd, 10/8/10 (Removed line)
                 if (call == 1) {
@@ -665,7 +665,7 @@ char RD(char player_index)
 
                 FadeIn(2, 10, 0, 0);
 
-                music_start(M_HARDWARE);
+                music->Start(M_HARDWARE);
 
                 WaitForMouseUp();
             }
@@ -1105,7 +1105,7 @@ char HPurc(char player_index)
     ShowUnit(hardware, unit, player_index);
 
     FadeIn(2, 10, 0, 0);
-    music_start(M_FILLER);
+    music->Start(M_FILLER);
     WaitForMouseUp();
 
     while (1) {
@@ -1123,7 +1123,7 @@ char HPurc(char player_index)
                 ShowUnit(hardware, unit, player_index);
 
                 FadeIn(2, 10, 0, 0);
-                music_start(M_FILLER);
+                music->Start(M_FILLER);
                 WaitForMouseUp();
             }
         } else if ((x > 266 && y > 164 && x < 314 && y < 174 && mousebuttons > 0) || key == 'Z') {
@@ -1258,7 +1258,7 @@ char HPurc(char player_index)
         } else if (((y >= 3 && y <= 19) && (x >= 243 && x <= 316 && mousebuttons > 0)) || key == K_ENTER) {
             InBox(245, 5, 314, 17);
             WaitForMouseUp();
-            music_stop();
+            music->Stop();
             Del_RD_BUT();
             call = 0;
             HARD1 = PROBE_HARDWARE;
@@ -1270,7 +1270,7 @@ char HPurc(char player_index)
             WaitForMouseUp();
             HARD1 = hardware;
             UNIT1 = unit;
-            music_stop();
+            music->Stop();
             remove_savedat("UNDO.TMP");
 
             // DM Screen, Nikakd, 10/8/10 (Removed line)
@@ -1298,7 +1298,7 @@ char HPurc(char player_index)
             fclose(undo);
 
             FadeIn(2, 10, 0, 0);
-            music_start(M_FILLER);
+            music->Start(M_FILLER);
             WaitForMouseUp();
         }
     }
