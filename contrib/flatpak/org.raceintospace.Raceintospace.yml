@@ -77,8 +77,3 @@ modules:
       cleanup:
         - '/include'
         - '/lib/lib*.a'
-      # Icon should be in different place build system puts it, workaround
-      # .xpm icons are unsupported
-      post-install:
-        - install -D /app/share/pixmaps/raceintospace.png /app/share/icons/hicolor/128x128/apps/org.raceintospace.Raceintospace.png
-        - sed -e 's/^Icon=raceintospace/Icon=org.raceintospace.Raceintospace/' -i /app/share/applications/*.desktop
