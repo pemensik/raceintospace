@@ -4,7 +4,6 @@ runtime: org.freedesktop.Platform
 runtime-version: '20.08'
 sdk: org.freedesktop.Sdk
 command: raceintospace
-rename-desktop-file: raceintospace.desktop
 
 finish-args:
     - --share=ipc
