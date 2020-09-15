@@ -69,10 +69,9 @@ modules:
       buildsystem: cmake
       sources:
         - type: git
-          url: https://github.com/raceintospace/raceintospace.git
-          # Until there is release tag, freeze in time for repeatable builds
-          # comment out following for master
-          commit: 3cac32846694e325422c87ffd1c29e1811d85616
+          #url: https://github.com/raceintospace/raceintospace.git
+          url: https://github.com/pemensik/raceintospace.git
+          branch: flatpak
       cleanup:
         - '/include'
         - '/lib/lib*.a'
