@@ -1,0 +1,4 @@
+The source tarball of version 1.1 comes from https://github.com/raceintospace/raceintospace.
+The commit id is 014a37c3649790559bf376ba0595e0416dc29c91. The source has some files and directories
+removed: .git/, .gitignore, .git-hooks/ and src/game/platform_macosx. get-tarball.sh should create
+the source tarbal

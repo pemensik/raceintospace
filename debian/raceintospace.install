@@ -1,0 +1,3 @@
+debian/raceintospace.desktop usr/share/applications
+debian/raceintospace.xpm usr/share/pixmaps
+usr/bin/raceintospace /usr/games/

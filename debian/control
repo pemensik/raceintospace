@@ -1,0 +1,45 @@
+Source: raceintospace
+Section: games
+Priority: optional
+Maintainer: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
+Uploaders: Dariusz Dwornikowski <dariusz.dwornikowski@cs.put.poznan.pl>
+Build-Depends:
+ cmake (>= 2.8),
+ debhelper (>= 9),
+ libboost-dev,
+ libjsoncpp-dev,
+ libogg-dev,
+ libpng-dev,
+ libprotobuf-dev,
+ libsdl1.2-dev (>= 1.2),
+ libtheora-dev,
+ libvorbis-dev,
+ protobuf-compiler,
+ libphysfs-dev (>=2.0)
+Standards-Version: 3.9.6
+Homepage: http://www.raceintospace.org/
+Vcs-Git: git://anonscm.debian.org/pkg-games/raceintospace.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-games/raceintospace.git
+
+Package: raceintospace
+Architecture: any
+Depends:
+ raceintospace-data (>= ${source:Version}),
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: free software version of the Liftoff! board game
+ Race Into Space a free software version of the
+ Liftoff! board game by Fritz Bronner, originally developed by
+ Strategic Visions and published by Interplay in 1993 and 1994
+ as Buzz Aldrin's Race Into Space.
+
+Package: raceintospace-data
+Architecture: all
+Depends: ${misc:Depends}
+Description: free software version of the Liftoff! board game - data file
+ Race Into Space a free software version of the
+ Liftoff! board game by Fritz Bronner, originally developed by
+ Strategic Visions and published by Interplay in 1993 and 1994
+ as Buzz Aldrin's Race Into Space.
+ .
+ This package contains data files. music and movies.

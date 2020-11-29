@@ -1,0 +1,17 @@
+Description: Disables SDL icon 
+  The icon does not exist and the game crashes. This is a bug
+  https://github.com/raceintospace/raceintospace/issues/125
+Author: Dariusz Dwornikowski <dariusz.dwornikowski@cs.put.poznan.pl>
+Forwarded: no
+Last-Update: 2014-05-16
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -39,7 +39,7 @@
+   set(DEFAULT_DATADIR ".")
+   set(DEFAULT_SAVEDIR ".")
+ else()
+-   set(SET_SDL_ICON TRUE)
++  set(SET_SDL_ICON FALSE)
+    set(DEFAULT_DATADIR "${CMAKE_INSTALL_PREFIX}/share/raceintospace")
+    set(DEFAULT_SAVEDIR ".")
+   # this is so we can find Homebrew components

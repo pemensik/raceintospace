@@ -1,0 +1,685 @@
+Description: Physfs 2.1 compat
+  This patch adds compatibility layer for physf, so that physfs 2.0 can be used
+Author: Hendrik Weimer <hendrik@enyo.de>
+Forwarded: no
+Last-Update: 2014-09-14
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -11,112 +11,112 @@
+ ###
+ # Boost
+ 
+-if (BUILD_BOOST)
+-  set (Boost_Version 1.52.0)
+-  string (REPLACE "." "_" Boost_UnderscoreVersion ${Boost_Version})
+-  set (Boost_URL http://downloads.sourceforge.net/boost/boost/${Boost_Version}/boost_${Boost_UnderscoreVersion}.tar.gz)
+-  set (Boost_Dir ${CMAKE_CURRENT_BINARY_DIR}/boost-${Boost_Version})
+-
+-  ExternalProject_Add(ext_boost
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${Boost_URL}
+-    PREFIX ${Boost_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/boost/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
+-    )
+-  
+-  add_dependencies(libs ext_boost)
+-endif (BUILD_BOOST)
+-
+-
+-###
+-# zlib
+-
+-if (BUILD_ZLIB)
+-  set (zlib_Version 1.2.8)
+-  set (zlib_URL http://zlib.net/zlib-${zlib_Version}.tar.gz)
+-  set (zlib_Dir ${CMAKE_CURRENT_BINARY_DIR}/zlib-${zlib_Version})
+-
+-  # zlib uses CMake, but it doesn't build on Mac OS X:
+-  #  https://github.com/madler/zlib/pull/26
+-  ExternalProject_Add(ext_zlib
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${zlib_URL}
+-    PREFIX ${zlib_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/zlib/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
+-    )
+-
+-  add_dependencies(libs ext_zlib)
+-endif (BUILD_ZLIB)
++# if (BUILD_BOOST)
++#   set (Boost_Version 1.52.0)
++#   string (REPLACE "." "_" Boost_UnderscoreVersion ${Boost_Version})
++#   set (Boost_URL http://downloads.sourceforge.net/boost/boost/${Boost_Version}/boost_${Boost_UnderscoreVersion}.tar.gz)
++#   set (Boost_Dir ${CMAKE_CURRENT_BINARY_DIR}/boost-${Boost_Version})
++#
++#   ExternalProject_Add(ext_boost
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${Boost_URL}
++#     PREFIX ${Boost_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/boost/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
++#     )
++#   
++#   add_dependencies(libs ext_boost)
++# endif (BUILD_BOOST)
++#
++#
++# ###
++# # zlib
++#
++# if (BUILD_ZLIB)
++#   set (zlib_Version 1.2.8)
++#   set (zlib_URL http://zlib.net/zlib-${zlib_Version}.tar.gz)
++#   set (zlib_Dir ${CMAKE_CURRENT_BINARY_DIR}/zlib-${zlib_Version})
++#
++#   # zlib uses CMake, but it doesn't build on Mac OS X:
++#   #  https://github.com/madler/zlib/pull/26
++#   ExternalProject_Add(ext_zlib
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${zlib_URL}
++#     PREFIX ${zlib_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/zlib/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
++#     )
++#
++#   add_dependencies(libs ext_zlib)
++# endif (BUILD_ZLIB)
+ 
+ ###
+ # libpng
+ 
+-if (BUILD_LIBPNG)
+-  set (libpng_Version 1.5.13)
+-  set (libpng_URL http://download.sourceforge.net/libpng/libpng-${libpng_Version}.tar.gz)
+-  set (libpng_Dir ${CMAKE_CURRENT_BINARY_DIR}/libpng-${libpng_Version})
+-
+-  ExternalProject_Add(ext_libpng
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${libpng_URL}
+-    PREFIX ${libpng_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libpng/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
+-    )
+-  
+-  add_dependencies(libs ext_libpng)
+-  
+-  if (BUILD_ZLIB)
+-    add_dependencies(ext_libpng ext_zlib)
+-  endif (BUILD_ZLIB)
+-endif (BUILD_LIBPNG)
++# if (BUILD_LIBPNG)
++#   set (libpng_Version 1.5.13)
++#   set (libpng_URL http://download.sourceforge.net/libpng/libpng-${libpng_Version}.tar.gz)
++#   set (libpng_Dir ${CMAKE_CURRENT_BINARY_DIR}/libpng-${libpng_Version})
++#
++#   ExternalProject_Add(ext_libpng
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${libpng_URL}
++#     PREFIX ${libpng_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libpng/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
++#     )
++#   
++#   add_dependencies(libs ext_libpng)
++#   
++#   if (BUILD_ZLIB)
++#     add_dependencies(ext_libpng ext_zlib)
++#   endif (BUILD_ZLIB)
++# endif (BUILD_LIBPNG)
+ 
+ ###
+ # SDL
+ 
+-if (BUILD_SDL)
+-  set (SDL_Version 1.2.15)
+-  set (SDL_Dir ${CMAKE_CURRENT_BINARY_DIR}/sdl-${SDL_Version})
+-  
+-  if (WINDOWS)
+-    set (SDL_URL http://www.libsdl.org/release/SDL-devel-${SDL_Version}-VC.zip)
+-    ExternalProject_Add(ext_sdl
+-      DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-      URL ${SDL_URL}
+-      PREFIX ${SDL_Dir}
+-      PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/sdl/CMakeLists.windows.txt <SOURCE_DIR>/CMakeLists.txt
+-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
+-      )
+-
+-  else (WINDOWS)
+-    message(FATAL_ERROR "I don't know how to build CMake on this platform.")
+-  endif (WINDOWS)
+-
+-  add_dependencies(libs ext_sdl)
+-endif (BUILD_SDL)
++# if (BUILD_SDL)
++#   set (SDL_Version 1.2.15)
++#   set (SDL_Dir ${CMAKE_CURRENT_BINARY_DIR}/sdl-${SDL_Version})
++#   
++#   if (WINDOWS)
++#     set (SDL_URL http://www.libsdl.org/release/SDL-devel-${SDL_Version}-VC.zip)
++#     ExternalProject_Add(ext_sdl
++#       DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#       URL ${SDL_URL}
++#       PREFIX ${SDL_Dir}
++#       PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/sdl/CMakeLists.windows.txt <SOURCE_DIR>/CMakeLists.txt
++#       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
++#       )
++#
++#   else (WINDOWS)
++#     message(FATAL_ERROR "I don't know how to build CMake on this platform.")
++#   endif (WINDOWS)
++#
++#   add_dependencies(libs ext_sdl)
++# endif (BUILD_SDL)
+ 
+ ###
+ # JsonCPP
+ 
+-if (BUILD_JSONCPP)
+-  set (JsonCPP_Version 0.5.0)
+-  set (JsonCPP_URL http://downloads.sourceforge.net/jsoncpp/jsoncpp/${JsonCPP_Version}/jsoncpp-src-${JsonCPP_Version}.tar.gz)
+-  set (JsonCPP_Dir ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp-${JsonCPP_Version})
+-
+-  # JsonCPP uses scons, but it's actually really simple, so instead we ship and
+-  # build with our own jsoncpp-CMakeLists.txt
+-  ExternalProject_Add(ext_jsoncpp
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${JsonCPP_URL}
+-    PREFIX ${JsonCPP_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/jsoncpp/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
+-    )
+-
+-  add_dependencies(libs ext_jsoncpp)
+-endif (BUILD_JSONCPP)
++# if (BUILD_JSONCPP)
++#   set (JsonCPP_Version 0.5.0)
++#   set (JsonCPP_URL http://downloads.sourceforge.net/jsoncpp/jsoncpp/${JsonCPP_Version}/jsoncpp-src-${JsonCPP_Version}.tar.gz)
++#   set (JsonCPP_Dir ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp-${JsonCPP_Version})
++#
++#   # JsonCPP uses scons, but it's actually really simple, so instead we ship and
++#   # build with our own jsoncpp-CMakeLists.txt
++#   ExternalProject_Add(ext_jsoncpp
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${JsonCPP_URL}
++#     PREFIX ${JsonCPP_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/jsoncpp/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix}
++#     )
++#
++#   add_dependencies(libs ext_jsoncpp)
++# endif (BUILD_JSONCPP)
+ 
+ ###
+ # PhysicsFS
+@@ -124,9 +124,9 @@
+ # I want 2.1 features, even if they're not out yet, so I made my own tarball
+ #set (physfs_Version 2.0.3)
+ #set (physfs_URL http://icculus.org/physfs/downloads/physfs-${physfs_Version}.tar.bz2)
+-set (physfs_Version 2.1.0-pre20121013)
+-set (physfs_URL https://s3.amazonaws.com/willglynn/physfs-${physfs_Version}.tgz)
+-set (physfs_Dir ${CMAKE_CURRENT_BINARY_DIR}/physfs-${physfs_Version})
++#set (physfs_Version 2.1.0-pre20121013)
++#set (physfs_URL https://s3.amazonaws.com/willglynn/physfs-${physfs_Version}.tgz)
++#set (physfs_Dir ${CMAKE_CURRENT_BINARY_DIR}/physfs-${physfs_Version})
+ 
+ # physfs 2.0.3 complains about FSPathMakeRef et al being deprecated, and warnings are treated as errors
+ # Turn it back into a warning instead
+@@ -134,110 +134,110 @@
+   set (physfs_Flags -Wno-error=deprecated-declarations)
+ endif (APPLE)
+ 
+-ExternalProject_Add(ext_physfs
+-  DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-  URL ${physfs_URL}
+-  PREFIX ${physfs_Dir}
+-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DPHYSFS_ARCHIVE_7Z=false -DPHYSFS_ARCHIVE_GRP=false -DPHYSFS_ARCHIVE_WAD=false -DPHYSFS_ARCHIVE_HOG=false -DPHYSFS_ARCHIVE_MVL=false -DPHYSFS_ARCHIVE_QPAK=false -DPHYSFS_ARCHIVE_ISO9660=false -DPHYSFS_HAVE_CDROM_SUPPORT=false -DPHYSFS_BUILD_SHARED=false -DPHYSFS_BUILD_TEST=false -DCMAKE_C_FLAGS=${physfs_Flags}
+-  )
++#ExternalProject_Add(ext_physfs
++#  DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#  URL ${physfs_URL}
++#  PREFIX ${physfs_Dir}
++#  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DPHYSFS_ARCHIVE_7Z=false -DPHYSFS_ARCHIVE_GRP=false -DPHYSFS_ARCHIVE_WAD=false -DPHYSFS_ARCHIVE_HOG=false -DPHYSFS_ARCHIVE_MVL=false -DPHYSFS_ARCHIVE_QPAK=false -DPHYSFS_ARCHIVE_ISO9660=false -DPHYSFS_HAVE_CDROM_SUPPORT=false -DPHYSFS_BUILD_SHARED=false -DPHYSFS_BUILD_TEST=false -DCMAKE_C_FLAGS=${physfs_Flags}
++#  )
+ 
+-add_dependencies(libs ext_physfs)
++#add_dependencies(libs ext_physfs)
+ 
+ 
+ ###
+ # Protocol Buffers
+ 
+-if (BUILD_PROTOBUF)
+-  set (protobuf_Version 2.4.1)
+-  set (protobuf_URL http://protobuf.googlecode.com/files/protobuf-${protobuf_Version}.tar.gz)
+-  set (protobuf_Dir ${CMAKE_CURRENT_BINARY_DIR}/protobuf-${protobuf_Version})
+-
+-  ExternalProject_Add(ext_protobuf
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${protobuf_URL}
+-    PREFIX ${protobuf_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/protobuf/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DCONFIG_H_IN=${CMAKE_CURRENT_SOURCE_DIR}/protobuf/config.h.in
+-    )
+-
+-  add_dependencies(libs ext_protobuf)
+-endif (BUILD_PROTOBUF)
++# if (BUILD_PROTOBUF)
++#   set (protobuf_Version 2.4.1)
++#   set (protobuf_URL http://protobuf.googlecode.com/files/protobuf-${protobuf_Version}.tar.gz)
++#   set (protobuf_Dir ${CMAKE_CURRENT_BINARY_DIR}/protobuf-${protobuf_Version})
++#
++#   ExternalProject_Add(ext_protobuf
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${protobuf_URL}
++#     PREFIX ${protobuf_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/protobuf/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DCONFIG_H_IN=${CMAKE_CURRENT_SOURCE_DIR}/protobuf/config.h.in
++#     )
++#
++#   add_dependencies(libs ext_protobuf)
++# endif (BUILD_PROTOBUF)
+ 
+ ###
+ # libogg
+ 
+-if (BUILD_XIPH)
+-  set (libogg_Version 1.3.0)
+-  set (libogg_URL http://downloads.xiph.org/releases/ogg/libogg-${libogg_Version}.tar.gz)
+-  set (libogg_Dir ${CMAKE_CURRENT_BINARY_DIR}/libogg-${libogg_Version})
+-
+-  ExternalProject_Add(ext_libogg
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${libogg_URL}
+-    PREFIX ${libogg_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libogg/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DCONFIG_TYPES_H_IN=${CMAKE_CURRENT_SOURCE_DIR}/libogg/config_types.h.in
+-    )
+-
+-  add_dependencies(libs ext_libogg)
+-
+-else (BUILD_XIPH)
+-  add_library(ogg STATIC IMPORTED)
+-  set_property(TARGET ogg APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
+-  set_target_properties(ogg PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Ogg_LIBRARY})
+-
+-endif (BUILD_XIPH)
+-
++# if (BUILD_XIPH)
++#   set (libogg_Version 1.3.0)
++#   set (libogg_URL http://downloads.xiph.org/releases/ogg/libogg-${libogg_Version}.tar.gz)
++#   set (libogg_Dir ${CMAKE_CURRENT_BINARY_DIR}/libogg-${libogg_Version})
++#
++#   ExternalProject_Add(ext_libogg
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${libogg_URL}
++#     PREFIX ${libogg_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libogg/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DCONFIG_TYPES_H_IN=${CMAKE_CURRENT_SOURCE_DIR}/libogg/config_types.h.in
++#     )
++#
++#   add_dependencies(libs ext_libogg)
++#
++# else (BUILD_XIPH)
++#   add_library(ogg STATIC IMPORTED)
++#   set_property(TARGET ogg APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
++#   set_target_properties(ogg PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Ogg_LIBRARY})
++#
++# endif (BUILD_XIPH)
++#
+ 
+ ###
+ # libvorbis
+ 
+-if (BUILD_XIPH)
+-  set (libvorbis_Version 1.3.3)
+-  set (libvorbis_URL http://downloads.xiph.org/releases/vorbis/libvorbis-${libvorbis_Version}.tar.gz)
+-  set (libvorbis_Dir ${CMAKE_CURRENT_BINARY_DIR}/libvorbis-${libvorbis_Version})
+-
+-  ExternalProject_Add(ext_libvorbis
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${libvorbis_URL}
+-    PREFIX ${libvorbis_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libvorbis/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DLocalPrefix=${LocalPrefix}
+-    )
+-  
+-  add_dependencies(libs ext_libogg)
+-  add_dependencies(ext_libvorbis ext_libogg)
+-
+-else (BUILD_XIPH)
+-  add_library(vorbis STATIC IMPORTED)
+-  set_property(TARGET vorbis APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
+-  set_target_properties(vorbis PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Vorbis_LIBRARY})
+-
+-endif (BUILD_XIPH)
+-
+-
+-###
+-# libtheora
+-
+-if (BUILD_XIPH)
+-  set (libtheora_Version 1.1.1)
+-  set (libtheora_URL http://downloads.xiph.org/releases/theora/libtheora-${libtheora_Version}.tar.gz)
+-  set (libtheora_Dir ${CMAKE_CURRENT_BINARY_DIR}/libtheora-${libtheora_Version})
+-
+-  ExternalProject_Add(ext_libtheora
+-    DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
+-    URL ${libtheora_URL}
+-    PREFIX ${libtheora_Dir}
+-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libtheora/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
+-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DLocalPrefix=${LocalPrefix}
+-    )
+-  
+-  add_dependencies(libs ext_libtheora)
+-  add_dependencies(ext_libtheora ext_libogg)
+-
+-else (BUILD_XIPH)
+-  add_library(theora STATIC IMPORTED)
+-  set_property(TARGET theora APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
+-  set_target_properties(theora PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Theora_LIBRARY})
+-  
+-endif (BUILD_XIPH)
++# if (BUILD_XIPH)
++#   set (libvorbis_Version 1.3.3)
++#   set (libvorbis_URL http://downloads.xiph.org/releases/vorbis/libvorbis-${libvorbis_Version}.tar.gz)
++#   set (libvorbis_Dir ${CMAKE_CURRENT_BINARY_DIR}/libvorbis-${libvorbis_Version})
++#
++#   ExternalProject_Add(ext_libvorbis
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${libvorbis_URL}
++#     PREFIX ${libvorbis_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libvorbis/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DLocalPrefix=${LocalPrefix}
++#     )
++#   
++#   add_dependencies(libs ext_libogg)
++#   add_dependencies(ext_libvorbis ext_libogg)
++#
++# else (BUILD_XIPH)
++#   add_library(vorbis STATIC IMPORTED)
++#   set_property(TARGET vorbis APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
++#   set_target_properties(vorbis PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Vorbis_LIBRARY})
++#
++# endif (BUILD_XIPH)
++#
++#
++# ###
++# # libtheora
++#
++# if (BUILD_XIPH)
++#   set (libtheora_Version 1.1.1)
++#   set (libtheora_URL http://downloads.xiph.org/releases/theora/libtheora-${libtheora_Version}.tar.gz)
++#   set (libtheora_Dir ${CMAKE_CURRENT_BINARY_DIR}/libtheora-${libtheora_Version})
++#
++#   ExternalProject_Add(ext_libtheora
++#     DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads
++#     URL ${libtheora_URL}
++#     PREFIX ${libtheora_Dir}
++#     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/libtheora/CMakeLists.txt <SOURCE_DIR>/CMakeLists.txt
++#     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${LocalPrefix} -DLocalPrefix=${LocalPrefix}
++#     )
++#   
++#   add_dependencies(libs ext_libtheora)
++#   add_dependencies(ext_libtheora ext_libogg)
++#
++# else (BUILD_XIPH)
++#   add_library(theora STATIC IMPORTED)
++#   set_property(TARGET theora APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
++#   set_target_properties(theora PROPERTIES IMPORTED_LOCATION_NOCONFIG ${Theora_LIBRARY})
++#   
++# endif (BUILD_XIPH)
+--- a/src/game/CMakeLists.txt
++++ b/src/game/CMakeLists.txt
+@@ -55,6 +55,7 @@
+   news_suq.cpp
+   options.cpp
+   pace.cpp
++  physfscompat.cpp
+   place.cpp
+   port.cpp
+   prefs.cpp
+--- a/src/game/file.cpp
++++ b/src/game/file.cpp
+@@ -4,6 +4,7 @@
+ #include <stdexcept>
+ 
+ #include "file.h"
++#include "physfscompat.h"
+ 
+ #define m_phys_handle ((PHYSFS_File*)m_handle)
+ 
+--- a/src/game/filesystem.cpp
++++ b/src/game/filesystem.cpp
+@@ -8,6 +8,7 @@
+ 
+ #include "raceintospace_config.h"
+ #include "filesystem.h"
++#include "physfscompat.h"
+ 
+ using boost::format;
+ 
+--- /dev/null
++++ b/src/game/physfscompat.cpp
+@@ -0,0 +1,145 @@
++/*
++ * PhysFS compatibility layer from Hedgewars, a free turn based strategy game
++ * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ */
++
++#include <stddef.h>
++#include <string.h>
++#include <assert.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <errno.h>
++
++#include "physfscompat.h"
++#include "utils.h"
++#include "logging.h"
++
++#ifdef _PHYSFS_COMPAT
++
++LOG_DEFAULT_CATEGORY(filesys)
++
++PHYSFS_DECL int PHYSFS_stat(const char *fname, PHYSFS_Stat *stat)
++{
++    PHYSFS_File * handle;
++
++    if (PHYSFS_exists(fname))
++    {
++        handle = PHYSFS_openRead(fname);
++        if (handle)
++        {
++            stat->filesize = PHYSFS_fileLength(handle);
++            PHYSFS_close(handle);
++            handle = 0;
++        }
++        else
++            stat->filesize = -1;
++
++        stat->modtime = PHYSFS_getLastModTime(fname);
++        stat->createtime = -1;
++        stat->accesstime = -1;
++
++        if (PHYSFS_isSymbolicLink(fname))
++            stat->filetype = PHYSFS_FILETYPE_SYMLINK;
++        else if (PHYSFS_isDirectory(fname))
++            stat->filetype = PHYSFS_FILETYPE_DIRECTORY;
++        else stat->filetype = PHYSFS_FILETYPE_REGULAR;
++
++        stat->readonly = 0; /* not supported */
++
++        /* success */
++        return 1;
++    }
++
++    /* does not exist, can't stat */
++    return 0;
++}
++
++PHYSFS_DECL PHYSFS_sint64 PHYSFS_readBytes(PHYSFS_File *handle, void *buffer,
++                                           PHYSFS_uint64 len)
++{
++    return PHYSFS_read(handle, buffer, 1, len);
++}
++
++
++PHYSFS_DECL PHYSFS_sint64 PHYSFS_writeBytes(PHYSFS_File *handle,
++                                            const void *buffer,
++                                            PHYSFS_uint64 len)
++{
++    return PHYSFS_write(handle, buffer, 1, len);
++}
++
++/* Compatibility wrapper around PHYSFS_getPrefDir, essentially a backport
++   from PhysFS upstream, with minor modifications by Hendrik Weimer
++   <hendrik@enyo.de>. The PhysFS license text is reproduced below.
++
++   Copyright (c) 2001-2011 Ryan C. Gordon and others.
++
++   This software is provided 'as-is', without any express or implied warranty.
++   In no event will the authors be held liable for any damages arising from
++   the use of this software.
++
++   Permission is granted to anyone to use this software for any purpose,
++   including commercial applications, and to alter it and redistribute it
++   freely, subject to the following restrictions:
++
++   1. The origin of this software must not be misrepresented; you must not
++   claim that you wrote the original software. If you use this software in a
++   product, an acknowledgment in the product documentation would be
++   appreciated but is not required.
++
++   2. Altered source versions must be plainly marked as such, and must not be
++   misrepresented as being the original software.
++
++   3. This notice may not be removed or altered from any source distribution.
++
++       Ryan C. Gordon <icculus@icculus.org>
++*/
++   
++PHYSFS_DECL const char *PHYSFS_getPrefDir(const char *org, const char *app)
++{
++    const char *envr = getenv("XDG_DATA_HOME");
++    const char *append = "/";
++    char *retval = NULL;
++    size_t len = 0;
++    struct stat st;
++
++    if (!envr)
++    {
++        /* You end up with "$HOME/.local/share/Game Name 2" */
++        envr = getenv("HOME"); 
++        append = "/.local/share/";
++    } /* if */
++
++    if(!envr)
++    {
++        CRITICAL1("could not find preferences directory");
++        exit(EXIT_FAILURE);
++    }
++
++    len = strlen(envr) + strlen(append) + strlen(app) + 2;
++    retval = (char *) xmalloc(len);
++    snprintf(retval, len, "%s%s%s/", envr, append, app);
++
++    if(stat(retval, &st) && (errno == ENOENT))
++        mkdir(retval, 0755);
++
++    return retval;
++
++}
++
++#endif /* _PHYSFS_COMPAT */
+--- /dev/null
++++ b/src/game/physfscompat.h
+@@ -0,0 +1,73 @@
++/*
++ * PhysFS compatibility layer from Hedgewars, a free turn based strategy game
++ * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ */
++
++#ifndef _PHYSFSCOMPAT_H
++#define _PHYSFSCOMPAT_H
++
++#include "physfs.h"
++
++#if PHYSFS_VER_MAJOR == 2
++#if PHYSFS_VER_MINOR == 0
++
++#define _PHYSFS_COMPAT
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#define PHYSFS_DECL __EXPORT__
++
++typedef enum PHYSFS_FileType
++{
++    PHYSFS_FILETYPE_REGULAR,
++    PHYSFS_FILETYPE_DIRECTORY,
++    PHYSFS_FILETYPE_SYMLINK,
++    PHYSFS_FILETYPE_OTHER
++} PHYSFS_FileType;
++
++typedef struct PHYSFS_Stat
++{
++    PHYSFS_sint64 filesize;
++    PHYSFS_sint64 modtime;
++    PHYSFS_sint64 createtime;
++    PHYSFS_sint64 accesstime;
++    PHYSFS_FileType filetype;
++    int readonly;
++} PHYSFS_Stat;
++
++PHYSFS_DECL int PHYSFS_stat(const char *fname, PHYSFS_Stat *stat);
++
++PHYSFS_DECL PHYSFS_sint64 PHYSFS_readBytes(PHYSFS_File *handle, void *buffer,
++                                           PHYSFS_uint64 len);
++
++
++PHYSFS_DECL PHYSFS_sint64 PHYSFS_writeBytes(PHYSFS_File *handle,
++                                            const void *buffer,
++                                            PHYSFS_uint64 len);
++
++PHYSFS_DECL const char *PHYSFS_getPrefDir(const char *org, const char *app);
++
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* PHYSFS_VER_MAJOR == 2 */
++#endif /* PHYSFS_VER_MINOR == 0 */
++
++#endif /* _PHYSFSCOMPAT_H */

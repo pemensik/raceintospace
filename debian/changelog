@@ -1,0 +1,11 @@
+raceintospace (2.0.0rc-1) unstable; urgency=medium
+
+  * Update to test release
+
+ -- Petr Mensik <pihhan+ris@gmail.com>  Sun, 29 Nov 2020 17:37:02 +0100
+
+raceintospace (1.1+dfsg1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #748321)
+
+ -- Dariusz Dwornikowski <dariusz.dwornikowski@cs.put.poznan.pl>  Thu, 15 May 2014 12:34:11 +0200
