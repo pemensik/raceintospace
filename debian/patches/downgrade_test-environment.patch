@@ -1,0 +1,43 @@
+Description: Enables test without installed data
+ Degrade test expects installed data. They are not during the build.
+ Call setup_options, which can configure path to data from BARIS_DATA
+ environment variable.
+ .
+ raceintospace (2.0.0rc-1) unstable; urgency=medium
+ .
+   * Update to test release
+Author: Petr Mensik <pihhan+ris@gmail.com>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2020-11-29
+
+--- raceintospace-2.0.0rc.orig/test/game/downgrade_test.cpp
++++ raceintospace-2.0.0rc/test/game/downgrade_test.cpp
+@@ -4,6 +4,7 @@
+ 
+ #include "game/downgrader.h"
+ #include "game/mission_util.h"
++#include "game/options.h"
+ 
+ struct DowngradeFixture {
+     DowngradeFixture() 
+@@ -28,6 +29,9 @@ struct DowngradeFixture {
+         mission.PCrew = 1;
+         mission.BCrew = 2;
+         mission.Crew = 1;
++
++	/* Allow data path from source directory by ENV BARIS_DATA */
++	setup_options(0, NULL);
+     }
+     ~DowngradeFixture()
+     {
