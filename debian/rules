@@ -5,6 +5,9 @@
 #export DH_VERBOSE=1
 VERSION ?= $(shell echo '$(DEBVERS)' | sed -e 's/^[[:digit:]]*://' -e 's/[-].*//')
 
+export DEB_BUILD_OPTIONS=nocheck
+export BARIS_DATA="$(pwd)/data"
+
 %:
 	dh $@ --parallel
 
