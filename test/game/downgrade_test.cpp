@@ -4,6 +4,7 @@
 
 #include "game/downgrader.h"
 #include "game/mission_util.h"
+#include "game/options.h"
 
 struct DowngradeFixture {
     DowngradeFixture() 
@@ -28,6 +29,9 @@ struct DowngradeFixture {
         mission.PCrew = 1;
         mission.BCrew = 2;
         mission.Crew = 1;
+
+	/* Allow data path from source directory by ENV BARIS_DATA */
+	setup_options(0, NULL);
     }
     ~DowngradeFixture()
     {
